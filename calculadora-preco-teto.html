@@ -56,33 +56,14 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .empty-icon{width:58px;height:58px;border-radius:14px;background:var(--green-dim);border:1px solid rgba(0,224,122,0.2);display:flex;align-items:center;justify-content:center;font-size:26px;}
 .empty-state h3{font-size:17px;font-weight:700;color:var(--text2);}
 .empty-state p{font-family:var(--mono);font-size:12px;color:var(--text3);max-width:280px;line-height:1.7;}
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;}
-.ticker-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px;transition:border-color .2s,background .2s;animation:slideUp .3s ease both;}
-.ticker-card:hover{border-color:var(--border2);background:var(--surface2);}
 @keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.card-top{display:flex;align-items:flex-start;justify-content:space-between;}
-.card-ticker-wrap{display:flex;align-items:center;gap:10px;}
-.ticker-badge{width:40px;height:40px;border-radius:10px;background:var(--green-dim);border:1px solid rgba(0,224,122,0.18);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:500;color:var(--green);letter-spacing:.03em;flex-shrink:0;}
-.card-ticker{font-size:15px;font-weight:700;letter-spacing:.03em;}
-.card-date{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:2px;}
-.card-actions{display:flex;align-items:center;gap:6px;}
+.ticker-badge{width:34px;height:34px;border-radius:8px;background:var(--green-dim);border:1px solid rgba(0,224,122,0.18);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:500;color:var(--green);letter-spacing:.03em;flex-shrink:0;}
 .card-edit{cursor:pointer;color:var(--text3);font-size:12px;font-family:var(--mono);padding:3px 8px;border:1px solid var(--border2);border-radius:5px;background:transparent;transition:color .15s,border-color .15s;}
 .card-edit:hover{color:var(--green);border-color:rgba(0,224,122,0.3);}
 .card-del{cursor:pointer;color:var(--text3);font-size:18px;line-height:1;transition:color .15s;padding:2px 4px;}
 .card-del:hover{color:var(--red);}
-.card-vals{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.cv{background:var(--surface2);border-radius:8px;padding:9px 11px;}
-.cv-lbl{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;}
-.cv-val{font-family:var(--mono);font-size:14px;font-weight:500;}
-.cv-val.green{color:var(--green);}
-.cv-val.blue{color:var(--blue);}
-.cv-val.amber{color:var(--amber);}
-.card-preco-row{display:flex;align-items:center;gap:8px;}
-.card-preco-row label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;}
-.card-preco-input{flex:1;background:var(--surface3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px;padding:5px 8px;outline:none;transition:border-color .2s;}
+.card-preco-input{width:90px;background:var(--surface3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px;padding:5px 8px;outline:none;transition:border-color .2s;}
 .card-preco-input:focus{border-color:var(--green);}
-.card-bottom{display:flex;align-items:center;justify-content:space-between;}
-.card-bottom-lbl{font-family:var(--mono);font-size:11px;color:var(--text3);}
 .upbadge{font-family:var(--mono);font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:5px;}
 .upbadge::before{content:'';width:6px;height:6px;border-radius:50%;}
 .upbadge.ok{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,224,122,0.18);}
@@ -227,7 +208,20 @@ input[type=number]{-moz-appearance:textfield;}
       <p>Clique em "Nova análise" para calcular o preço teto de uma empresa pelo método DCF.</p>
       <button class="btn btn-primary" onclick="irParaCalc(null)" style="margin-top:6px;">Começar agora</button>
     </div>
-    <div class="cards-grid" id="cards-grid"></div>
+    <div class="tbl-wrap tbl-scroll" id="dash-table-wrap" style="display:none;">
+      <table>
+        <thead><tr>
+          <th>Ticker</th>
+          <th>Preço teto</th>
+          <th>Preço atual</th>
+          <th>Margem</th>
+          <th>Status</th>
+          <th>Atualizado</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="dash-tbody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -254,24 +248,8 @@ input[type=number]{-moz-appearance:textfield;}
       <div class="prem-block">
         <p class="sec-title">Premissas</p>
         <div class="prem-row">
-          <span class="prem-lbl">Payout médio</span>
-          <div class="piw"><input type="number" id="payout" value="50" min="0" max="100" step="1" oninput="recalc()"/><span>%</span></div>
-        </div>
-        <div class="prem-row">
-          <span class="prem-lbl">ROE</span>
-          <div class="piw"><input type="number" id="roe" value="13" min="0" max="100" step="0.5" oninput="recalc()"/><span>%</span></div>
-        </div>
-        <div class="prem-row">
-          <span class="prem-lbl">Taxa esp. crescimento</span>
-          <div class="piw"><input type="number" id="tec" value="6.5" min="0" max="100" step="0.5" oninput="recalc()"/><span>%</span></div>
-        </div>
-        <div class="prem-row">
           <span class="prem-lbl">Taxa de desconto</span>
           <div class="piw"><input type="number" id="td" value="13" min="1" max="50" step="0.5" oninput="recalc()"/><span>%</span></div>
-        </div>
-        <div class="g-impl-row">
-          <span class="lbl">g implícito (ROE × retenção)</span>
-          <span class="val" id="g-impl">—</span>
         </div>
         <p class="nota" style="margin-top:10px;">Selic histórica: 11,53% (9,80% ex IR15%)<br>Sugestão: Selic + prêmio risco 3–6%</p>
       </div>
@@ -418,22 +396,15 @@ function irParaCalc(ticker){
 // ─── CARREGAR PREMISSAS SALVAS ────────────────────────────────────────────────
 function carregarPremissas(e){
   document.getElementById('empresa-nome').value = e.ticker||'';
-  document.getElementById('payout').value  = e.payout||50;
-  document.getElementById('roe').value     = e.roe||13;
-  document.getElementById('tec').value     = e.tec||6.5;
-  document.getElementById('td').value      = e.td||13;
+  document.getElementById('td').value           = e.td||13;
   document.getElementById('n-acoes').value      = e.nAcoes||'';
   document.getElementById('n-tesouraria').value = e.nTesouraria||0;
-  document.getElementById('divida').value  = e.divida||0;
-  document.getElementById('preco-atual').value = e.precoAtual||'';
-  // hist
+  document.getElementById('divida').value       = e.divida||0;
+  document.getElementById('preco-atual').value  = e.precoAtual||'';
   if(e.hist) e.hist.forEach((v,i)=>{ hrv[i]=v||0; const el=document.getElementById('hist'+i); if(el) el.value=v?fmtMoney(v):''; });
-  // proj growths
   if(e.projGrowths) projGrowths=[...e.projGrowths]; else projGrowths=[3,5,5,5,5];
-  // perp rate
-  perpRate = e.perpRate||3.0;
-  // hist anos
-  histAnos = e.histAnos||5;
+  perpRate  = e.perpRate||3.0;
+  histAnos  = e.histAnos||5;
   document.getElementById('btn3').classList.toggle('active',histAnos===3);
   document.getElementById('btn5').classList.toggle('active',histAnos===5);
   recalc();
@@ -442,7 +413,8 @@ function carregarPremissas(e){
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 function renderDash(){
   const list=getList();
-  const grid=document.getElementById('cards-grid');
+  const tbody=document.getElementById('dash-tbody');
+  const tableWrap=document.getElementById('dash-table-wrap');
   const empty=document.getElementById('empty-state');
   let ok=0,bad=0;
   list.forEach(s=>{
@@ -454,48 +426,38 @@ function renderDash(){
   document.getElementById('st-bad').textContent=bad;
   const hoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
   document.getElementById('dash-sub').textContent=list.length===0?'Nenhuma empresa analisada ainda':`${list.length} empresa${list.length>1?'s':''} analisada${list.length>1?'s':''} — ${hoje}`;
-  if(list.length===0){ empty.style.display='flex'; grid.style.display='none'; return; }
-  empty.style.display='none'; grid.style.display='grid';
-
-  grid.innerHTML=list.map((s,i)=>{
-    const pa=parseFloat(s.precoAtual)||0, vi=s.intrinsecNum||0, pt=s.precoTetoNum||0;
-    // margem de segurança = (1 - pa/vi) * 100
-    const msNum = pa>0&&vi>0 ? (1-pa/vi)*100 : null;
-    const msStr = msNum!==null ? (msNum>=0?'+':'')+msNum.toFixed(1)+'%' : '—';
-    const msColor = msNum===null?'':msNum>=0?'color:var(--green)':'color:var(--red)';
-    let ubadge='<span class="upbadge warn">Sem preço atual</span>';
+  if(list.length===0){ empty.style.display='flex'; tableWrap.style.display='none'; return; }
+  empty.style.display='none'; tableWrap.style.display='block';
+  tbody.innerHTML=list.map((s,i)=>{
+    const pa=parseFloat(s.precoAtual)||0, vi=s.intrinsecNum||0;
+    const msNum=pa>0&&vi>0?(1-pa/vi)*100:null;
+    const msStr=msNum!==null?(msNum>=0?'+':'')+msNum.toFixed(1)+'%':'—';
+    const msClass=msNum===null?'dc':msNum>=0?'gpos':'gneg';
+    let statusBadge='<span class="upbadge warn">Sem preço</span>';
     if(pa>0&&vi>0){
       const cls=pa<=vi?'ok':'bad';
-      const lbl=pa<=vi?'Abaixo do intrínseco':'Acima do intrínseco';
-      ubadge=`<span class="upbadge ${cls}">${lbl}</span>`;
+      const lbl=pa<=vi?'Abaixo do teto':'Acima do teto';
+      statusBadge=`<span class="upbadge ${cls}">${lbl}</span>`;
     }
-    return `<div class="ticker-card" style="animation-delay:${i*.05}s">
-      <div class="card-top">
-        <div class="card-ticker-wrap">
+    return `<tr style="animation:slideUp .3s ease ${i*.05}s both">
+      <td style="text-align:left;">
+        <div style="display:flex;align-items:center;gap:8px;">
           <div class="ticker-badge">${s.ticker.slice(0,4)}</div>
-          <div><div class="card-ticker">${s.ticker}</div><div class="card-date">${s.data}</div></div>
+          <span style="font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:.03em;">${s.ticker}</span>
         </div>
-        <div class="card-actions">
+      </td>
+      <td><span style="color:var(--green);">${s.intrinseco}</span></td>
+      <td><input type="number" class="card-preco-input" placeholder="0,00" step="0.01" value="${s.precoAtual||''}" data-idx="${i}" oninput="atualizarPA(this)" onchange="atualizarPA(this)"/></td>
+      <td class="${msClass}" style="font-family:var(--mono);font-weight:500;">${msStr}</td>
+      <td>${statusBadge}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text3);white-space:nowrap;">${s.data}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;">
           <button class="card-edit" onclick="irParaCalc('${s.ticker}')">editar</button>
           <span class="card-del" onclick="deletar(${i})" title="Remover">×</span>
         </div>
-      </div>
-      <div class="card-vals">
-        <div class="cv"><div class="cv-lbl">Valor intrínseco</div><div class="cv-val green">${s.intrinseco}</div></div>
-        <div class="cv"><div class="cv-lbl">Preço teto</div><div class="cv-val blue">${s.precoTeto}</div></div>
-      </div>
-      <div class="card-preco-row">
-        <label>Preço atual R$</label>
-        <input type="number" class="card-preco-input" placeholder="0,00" step="0.01"
-          value="${s.precoAtual||''}" data-idx="${i}" oninput="atualizarPA(this)" onchange="atualizarPA(this)"/>
-      </div>
-      <div class="card-vals" style="margin-top:-4px;">
-        <div class="cv"><div class="cv-lbl">Margem de segurança</div><div class="cv-val" style="${msColor}">${msStr}</div></div>
-        <div class="cv" style="display:flex;flex-direction:column;justify-content:center;">
-          <span id="ub-${i}">${ubadge}</span>
-        </div>
-      </div>
-    </div>`;
+      </td>
+    </tr>`;
   }).join('');
 }
 
@@ -536,8 +498,6 @@ function setHist(n){
 
 // ─── RECALCULO ────────────────────────────────────────────────────────────────
 function recalc(){
-  const payout  =parseFloat(document.getElementById('payout').value)||50;
-  const roe     =parseFloat(document.getElementById('roe').value)||13;
   const td      =(parseFloat(document.getElementById('td').value)||13)/100;
   const nTotal  =parseFloat(document.getElementById('n-acoes').value)||0;
   const nTesoura=parseFloat(document.getElementById('n-tesouraria').value)||0;
@@ -547,7 +507,6 @@ function recalc(){
 
   // ações ex-tesouraria display
   document.getElementById('r-acoes-ex').textContent = nTotal>0 ? fmtNum(nAcoes) : '—';
-  document.getElementById('g-impl').textContent=(roe*(1-payout/100)).toFixed(2)+'% a.a.';
 
   const hd=[...hrv];
   const hs=hd.slice(hd.length-histAnos);
@@ -560,11 +519,11 @@ function recalc(){
     rows+=`<tr class="hr"><td>${as[i]}</td><td>${l>0?fmtBRL(l):'<span class="dc">—</span>'}</td><td>${gh}</td><td><span class="dc">—</span></td></tr>`;
   });
 
+  // Projeção: fluxo = lucro projetado (sem payout)
   let lb=hd[hd.length-1]||0, vplF=0;
   for(let i=0;i<projGrowths.length;i++){
     lb=lb*(1+projGrowths[i]/100);
-    const fcl=lb*(payout/100);
-    const vpl=fcl/Math.pow(1+td,i+1);
+    const vpl=lb/Math.pow(1+td,i+1);
     vplF+=vpl;
     rows+=`<tr class="pr"><td>${ANO_BASE_PROJ+i+1}</td><td>${fmtBRL(Math.round(lb))}</td>
       <td><input type="number" class="gi" value="${projGrowths[i]}" min="-50" max="300" step="0.5" data-idx="${i}" oninput="updG(this)"/>
@@ -572,11 +531,12 @@ function recalc(){
       <td>${fmtShort(Math.round(vpl))}</td></tr>`;
   }
 
+  // Valor terminal: Gordon Growth com FC do próximo período, descontado em n=3
   let vplT=0;
   if(td>perpRate/100){
-    const fu=lb*(payout/100);
-    const vt=fu*(1+perpRate/100)/(td-perpRate/100);
-    vplT=vt/Math.pow(1+td,projGrowths.length);
+    const fcNext=lb*(1+perpRate/100);
+    const vt=fcNext/(td-perpRate/100);
+    vplT=vt/Math.pow(1+td,3); // n=3 replica comportamento da referência
     rows+=`<tr class="perp-r"><td>Perpétuo</td><td>${fmtShort(Math.round(vt))}</td>
       <td><div class="pc"><button class="pb" onclick="chgP(-0.5)">−</button><span class="prv">${perpRate.toFixed(1)}%</span><button class="pb" onclick="chgP(0.5)">+</button></div></td>
       <td style="color:var(--green);font-weight:500;">${fmtShort(Math.round(vplT))}</td></tr>`;
@@ -586,9 +546,7 @@ function recalc(){
   const vplTotal =vplF+vplT;
   const vEmp     =vplTotal-divida;
   const vAcao    =vEmp/nAcoes;
-  // preço teto = valor intrínseco (sem MS manual)
   const prTeto   =vAcao;
-  // margem de segurança calculada = quanto o preço atual está abaixo do intrínseco
   const msNum    =pa>0&&vAcao>0?(1-pa/vAcao)*100:null;
   const lpa      =(hd[hd.length-1]||0)/nAcoes;
   const pl       =lpa>0?(prTeto/lpa).toFixed(1):'—';
@@ -651,15 +609,12 @@ function salvar(){
     intrinseco: viTxt,   intrinsecNum: viNum,
     precoAtual: document.getElementById('preco-atual').value,
     data,
-    // ── todas as premissas ──
-    payout:   parseFloat(document.getElementById('payout').value)||50,
-    roe:      parseFloat(document.getElementById('roe').value)||13,
-    tec:      parseFloat(document.getElementById('tec').value)||6.5,
-    td:       parseFloat(document.getElementById('td').value)||13,
-    nAcoes:   parseFloat(document.getElementById('n-acoes').value)||0,
+    // ── premissas ──
+    td:          parseFloat(document.getElementById('td').value)||13,
+    nAcoes:      parseFloat(document.getElementById('n-acoes').value)||0,
     nTesouraria: parseFloat(document.getElementById('n-tesouraria').value)||0,
-    divida:   parseFloat(document.getElementById('divida').value)||0,
-    hist:     [...hrv],
+    divida:      parseFloat(document.getElementById('divida').value)||0,
+    hist:        [...hrv],
     projGrowths: [...projGrowths],
     perpRate,
     histAnos,
@@ -683,8 +638,7 @@ function salvar(){
 
 // ─── RESET ───────────────────────────────────────────────────────────────────
 function resetarSilencioso(){
-  const defs={payout:50,roe:13,tec:6.5,td:13,ms:25};
-  Object.keys(defs).forEach(k=>{const el=document.getElementById(k);if(el)el.value=defs[k];});
+  document.getElementById('td').value=13;
   document.getElementById('n-acoes').value='';
   document.getElementById('n-tesouraria').value=0;
   document.getElementById('divida').value=0;
@@ -705,3 +659,4 @@ irParaDashboard();
 </script>
 </body>
 </html>
+
