@@ -1,662 +1,274 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Preço Teto — DCF</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<style>
-:root{
-  --bg:#0b0f0e; --surface:#111714; --surface2:#161d1a; --surface3:#1c2520;
-  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.12);
-  --green:#00e07a; --green-dim:rgba(0,224,122,0.10); --green-mid:rgba(0,224,122,0.22);
-  --red:#ff4d6a; --red-dim:rgba(255,77,106,0.10);
-  --blue:#3d9dff; --blue-dim:rgba(61,157,255,0.10);
-  --amber:#f5a623; --amber-dim:rgba(245,166,35,0.10);
-  --text:#e8efe9; --text2:#7a9082; --text3:#4a5e53;
-  --mono:'DM Mono',monospace; --sans:'Syne',sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
-body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:linear-gradient(rgba(0,224,122,0.013) 1px,transparent 1px),linear-gradient(90deg,rgba(0,224,122,0.013) 1px,transparent 1px);
-  background-size:44px 44px;}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Preço Teto — DCF</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
 
-.screen{position:relative;z-index:1;display:none;min-height:100vh;flex-direction:column;}
-.screen.active{display:flex;}
-
-/* TOPBAR */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid var(--border);gap:16px;flex-shrink:0;}
-.brand{display:flex;align-items:baseline;gap:10px;}
-.brand h1{font-size:17px;font-weight:800;letter-spacing:-.3px;}
-.brand span{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;}
-
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .1s;border:none;letter-spacing:.01em;}
-.btn:active{transform:scale(.97);}
-.btn-primary{background:var(--green);color:#050f09;}
-.btn-primary:hover{opacity:.88;}
-.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2);}
-.btn-ghost:hover{color:var(--text);border-color:rgba(255,255,255,.22);}
-.btn-sm{padding:6px 14px;font-size:12px;}
-
-/* ═══════════ DASHBOARD ═══════════ */
-#screen-dash .body{flex:1;padding:28px;display:flex;flex-direction:column;gap:24px;}
-.dash-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;}
-.hero-text h2{font-size:26px;font-weight:800;letter-spacing:-.5px;line-height:1.2;}
-.hero-text h2 em{color:var(--green);font-style:normal;}
-.hero-text p{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:5px;letter-spacing:.06em;}
-.stats-row{display:flex;gap:10px;flex-wrap:wrap;}
-.stat-pill{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 16px;display:flex;flex-direction:column;gap:2px;min-width:100px;}
-.sp-lbl{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;}
-.sp-val{font-family:var(--mono);font-size:20px;font-weight:500;}
-.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:60px 20px;text-align:center;min-height:300px;}
-.empty-icon{width:58px;height:58px;border-radius:14px;background:var(--green-dim);border:1px solid rgba(0,224,122,0.2);display:flex;align-items:center;justify-content:center;font-size:26px;}
-.empty-state h3{font-size:17px;font-weight:700;color:var(--text2);}
-.empty-state p{font-family:var(--mono);font-size:12px;color:var(--text3);max-width:280px;line-height:1.7;}
-@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.ticker-badge{width:34px;height:34px;border-radius:8px;background:var(--green-dim);border:1px solid rgba(0,224,122,0.18);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:500;color:var(--green);letter-spacing:.03em;flex-shrink:0;}
-.card-edit{cursor:pointer;color:var(--text3);font-size:12px;font-family:var(--mono);padding:3px 8px;border:1px solid var(--border2);border-radius:5px;background:transparent;transition:color .15s,border-color .15s;}
-.card-edit:hover{color:var(--green);border-color:rgba(0,224,122,0.3);}
-.card-del{cursor:pointer;color:var(--text3);font-size:18px;line-height:1;transition:color .15s;padding:2px 4px;}
-.card-del:hover{color:var(--red);}
-.card-preco-input{width:90px;background:var(--surface3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px;padding:5px 8px;outline:none;transition:border-color .2s;}
-.card-preco-input:focus{border-color:var(--green);}
-.upbadge{font-family:var(--mono);font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:5px;}
-.upbadge::before{content:'';width:6px;height:6px;border-radius:50%;}
-.upbadge.ok{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,224,122,0.18);}
-.upbadge.ok::before{background:var(--green);}
-.upbadge.bad{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,106,0.18);}
-.upbadge.bad::before{background:var(--red);}
-.upbadge.warn{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,0.18);}
-.upbadge.warn::before{background:var(--amber);}
-
-/* ═══════════ CALCULATOR ═══════════ */
-.topbar-empresa{display:flex;align-items:center;gap:8px;}
-.topbar-empresa label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;}
-.topbar-empresa input{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--sans);font-size:14px;font-weight:700;padding:7px 12px;width:150px;outline:none;transition:border-color .2s;text-transform:uppercase;}
-.topbar-empresa input:focus{border-color:var(--green);}
-.calc-body{flex:1;display:grid;grid-template-columns:285px 1fr;}
-.left{border-right:1px solid var(--border);padding:20px 16px;display:flex;flex-direction:column;overflow-y:auto;max-height:calc(100vh - 58px);}
-.sec-title{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;}
-.prem-block{margin-bottom:18px;}
-.prem-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
-.prem-row:last-of-type{border-bottom:none;}
-.prem-lbl{font-size:13px;color:var(--text2);}
-.piw{display:flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:5px 9px;transition:border-color .2s;}
-.piw:focus-within{border-color:var(--green);}
-.piw input{background:transparent;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:13px;font-weight:500;width:52px;text-align:right;}
-.piw input.wide{width:90px;}
-.piw span{font-family:var(--mono);font-size:11px;color:var(--text3);}
-.g-impl-row{background:var(--green-dim);border:1px solid rgba(0,224,122,0.15);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
-.g-impl-row .lbl{font-size:12px;color:var(--text2);}
-.g-impl-row .val{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--green);}
-.nota{font-family:var(--mono);font-size:10px;color:var(--text3);line-height:1.6;padding-top:10px;border-top:1px solid var(--border);margin-top:6px;}
-.divider{border:none;border-top:1px solid var(--border);margin:16px 0;}
-.real-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--border);}
-.real-row:last-of-type{border-bottom:none;}
-.real-lbl{font-size:13px;color:var(--text2);}
-.real-val{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text);}
-.real-val.green{color:var(--green);}
-.real-val.red{color:var(--red);}
-.real-val.blue{color:var(--blue);}
-.real-val.amber{color:var(--amber);}
-.bot-btns{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:8px;}
-.bsave{background:var(--green);color:#050f09;border:none;border-radius:8px;padding:11px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .1s;}
-.bsave:hover{opacity:.88;}
-.bsave:active{transform:scale(.98);}
-.breset{background:transparent;color:var(--text3);border:1px solid var(--border2);border-radius:8px;padding:9px;font-family:var(--sans);font-size:12px;cursor:pointer;transition:color .2s;}
-.breset:hover{color:var(--text2);}
-.right{padding:20px 24px;display:flex;flex-direction:column;gap:18px;overflow-y:auto;max-height:calc(100vh - 58px);}
-.right-hdr{display:flex;justify-content:space-between;align-items:center;}
-.tgl{display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px;}
-.tbtn{background:transparent;border:none;border-radius:6px;color:var(--text2);font-family:var(--mono);font-size:11px;font-weight:500;padding:5px 14px;cursor:pointer;transition:background .2s,color .2s;letter-spacing:.04em;}
-.tbtn.active{background:var(--green-mid);color:var(--green);}
-.hist-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
-.hist-grid{display:flex;gap:10px;flex-wrap:wrap;}
-.hist-item{display:flex;flex-direction:column;gap:5px;flex:1;min-width:85px;}
-.hist-item label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.07em;text-transform:uppercase;}
-.hist-item input{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 7px;text-align:right;outline:none;width:100%;transition:border-color .2s;}
-.hist-item input:focus{border-color:var(--green);}
-.hist-item input::placeholder{color:var(--text3);}
-.tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-.tbl-scroll{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;font-size:13px;}
-thead tr{border-bottom:1px solid var(--border2);}
-thead th{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;text-align:right;padding:10px 13px;}
-thead th:first-child{text-align:left;}
-tbody tr{border-bottom:1px solid var(--border);}
-tbody tr:last-child{border-bottom:none;}
-tbody td{padding:9px 13px;text-align:right;font-family:var(--mono);font-size:13px;color:var(--text);}
-tbody td:first-child{text-align:left;font-family:var(--sans);font-size:13px;font-weight:600;}
-.hr td{color:var(--text2);}
-.hr td:first-child{color:var(--text3);font-weight:500;}
-.pr td:first-child{color:var(--blue);}
-.pr:hover{background:rgba(61,157,255,0.03);}
-.perp-r{background:rgba(0,224,122,0.04);}
-.perp-r td:first-child{color:var(--green);font-style:italic;}
-.gpos{color:var(--green);}
-.gneg{color:var(--red);}
-.dc{color:var(--text3);}
-.gi{background:var(--surface2);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:var(--mono);font-size:12px;padding:4px 6px;width:56px;text-align:center;outline:none;transition:border-color .2s;}
-.gi:focus{border-color:var(--green);}
-.pc{display:flex;align-items:center;justify-content:flex-end;gap:7px;}
-.pb{width:24px;height:24px;background:var(--surface2);border:1px solid var(--border2);border-radius:5px;color:var(--text2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .2s,color .2s;font-family:var(--mono);padding:0;line-height:1;}
-.pb:hover{border-color:var(--green);color:var(--green);}
-.prv{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--green);min-width:36px;text-align:center;}
-.sum-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
-.scard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;transition:border-color .2s;}
-.scard:hover{border-color:var(--border2);}
-.scard.hl{border-color:rgba(0,224,122,0.28);background:var(--green-dim);}
-.slbl{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
-.sval{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);}
-.sval.green{color:var(--green);}
-.sval.blue{color:var(--blue);}
-.sval.amber{color:var(--amber);}
-.ssub{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:3px;}
-.vbar{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;flex-wrap:wrap;gap:10px;}
-.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:20px;font-family:var(--sans);font-size:12px;font-weight:600;}
-.badge::before{content:'';width:7px;height:7px;border-radius:50%;}
-.badge.ok{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,224,122,0.2);}
-.badge.ok::before{background:var(--green);}
-.badge.warn{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,0.2);}
-.badge.warn::before{background:var(--amber);}
-.badge.bad{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,106,0.2);}
-.badge.bad::before{background:var(--red);}
-.vdet{font-family:var(--mono);font-size:12px;color:var(--text3);}
-::-webkit-scrollbar{width:5px;height:5px;}
-::-webkit-scrollbar-track{background:var(--bg);}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
-input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
-input[type=number]{-moz-appearance:textfield;}
-@media(max-width:860px){
-  .calc-body{grid-template-columns:1fr;}
-  .left{border-right:none;border-bottom:1px solid var(--border);max-height:none;}
-  .right{max-height:none;}
-  .sum-grid{grid-template-columns:repeat(2,1fr);}
-}
-</style>
-</head>
-<body>
-
-<!-- ════════════ TELA 1 — DASHBOARD ════════════ -->
-<div id="screen-dash" class="screen">
-  <div class="topbar">
-    <div class="brand"><h1>Preço Teto</h1><span>DCF — Análise Fundamentalista</span></div>
-    <button class="btn btn-primary" onclick="irParaCalc(null)">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Nova análise
-    </button>
-  </div>
-  <div class="body">
-    <div class="dash-hero">
-      <div class="hero-text">
-        <h2>Minhas <em>análises</em></h2>
-        <p id="dash-sub">—</p>
-      </div>
-      <div class="stats-row">
-        <div class="stat-pill"><span class="sp-lbl">Total</span><span class="sp-val" id="st-total">0</span></div>
-        <div class="stat-pill"><span class="sp-lbl">Oportunidade</span><span class="sp-val" style="color:var(--green)" id="st-ok">0</span></div>
-        <div class="stat-pill"><span class="sp-lbl">Acima do teto</span><span class="sp-val" style="color:var(--red)" id="st-bad">0</span></div>
-      </div>
-    </div>
-    <div class="empty-state" id="empty-state">
-      <div class="empty-icon">◈</div>
-      <h3>Nenhuma análise ainda</h3>
-      <p>Clique em "Nova análise" para calcular o preço teto de uma empresa pelo método DCF.</p>
-      <button class="btn btn-primary" onclick="irParaCalc(null)" style="margin-top:6px;">Começar agora</button>
-    </div>
-    <div class="tbl-wrap tbl-scroll" id="dash-table-wrap" style="display:none;">
-      <table>
-        <thead><tr>
-          <th>Ticker</th>
-          <th>Preço teto</th>
-          <th>Preço atual</th>
-          <th>Margem</th>
-          <th>Status</th>
-          <th>Atualizado</th>
-          <th></th>
-        </tr></thead>
-        <tbody id="dash-tbody"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════ TELA 2 — CALCULADORA ════════════ -->
-<div id="screen-calc" class="screen">
-  <div class="topbar">
-    <div class="brand" style="gap:8px;align-items:center;">
-      <button class="btn btn-ghost btn-sm" onclick="irParaDashboard()" style="gap:5px;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        Voltar
-      </button>
-      <span style="color:var(--text3);font-family:var(--mono);font-size:12px;">/</span>
-      <span style="font-family:var(--mono);font-size:12px;color:var(--text3);" id="topbar-mode">nova análise</span>
-    </div>
-    <div class="topbar-empresa">
-      <label>Ticker</label>
-      <input type="text" id="empresa-nome" placeholder="ex: ITUB4" oninput="this.value=this.value.toUpperCase();recalc()"/>
-    </div>
-  </div>
-
-  <div class="calc-body">
-    <!-- LEFT -->
-    <div class="left">
-      <div class="prem-block">
-        <p class="sec-title">Premissas</p>
-        <div class="prem-row">
-          <span class="prem-lbl">Taxa de desconto</span>
-          <div class="piw"><input type="number" id="td" value="13" min="1" max="50" step="0.5" oninput="recalc()"/><span>%</span></div>
+  <body>
+    <!-- ════════════ TELA 1 — DASHBOARD ════════════ -->
+    <div id="screen-dash" class="screen">
+      <div class="topbar">
+        <div class="brand">
+          <h1>Preço Teto</h1>
+          <span>DCF — Análise Fundamentalista</span>
         </div>
-        <p class="nota" style="margin-top:10px;">Selic histórica: 11,53% (9,80% ex IR15%)<br>Sugestão: Selic + prêmio risco 3–6%</p>
+        <button class="btn btn-primary" onclick="irParaCalc(null)">
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Nova análise
+        </button>
       </div>
-
-      <div class="divider"></div>
-
-      <div class="prem-block">
-        <p class="sec-title">Dados da empresa</p>
-        <div class="prem-row">
-          <span class="prem-lbl">Total de ações emitidas</span>
-          <div class="piw" style="padding:5px 8px;"><input type="number" id="n-acoes" placeholder="ex: 500000000" min="1" step="1000" oninput="recalc()" class="wide"/></div>
-        </div>
-        <div class="prem-row">
-          <span class="prem-lbl">Ações em tesouraria</span>
-          <div class="piw" style="padding:5px 8px;"><input type="number" id="n-tesouraria" value="0" min="0" step="1000" oninput="recalc()" class="wide"/></div>
-        </div>
-        <div class="prem-row" style="border-bottom:1px solid var(--border);">
-          <span class="prem-lbl" style="color:var(--text3);font-size:12px;">Ações ex-tesouraria</span>
-          <span class="real-val blue" id="r-acoes-ex" style="font-size:12px;">—</span>
-        </div>
-        <div class="prem-row">
-          <span class="prem-lbl">Dívida líquida</span>
-          <div class="piw"><input type="number" id="divida" value="0" step="10" oninput="recalc()"/><span>R$ mi</span></div>
-        </div>
-        <div class="prem-row">
-          <span class="prem-lbl">Preço atual</span>
-          <div class="piw"><input type="number" id="preco-atual" placeholder="0,00" min="0" step="0.01" oninput="recalc()"/><span>R$</span></div>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div>
-        <p class="sec-title">Resultado</p>
-        <div class="real-row"><span class="real-lbl">Market cap</span><span class="real-val blue" id="r-mcap">—</span></div>
-        <div class="real-row"><span class="real-lbl">Valor intrínseco/ação</span><span class="real-val blue" id="r-intrinseco">—</span></div>
-        <div class="real-row"><span class="real-lbl">Preço teto</span><span class="real-val green" id="r-teto">—</span></div>
-        <div class="real-row"><span class="real-lbl">Margem de segurança</span><span class="real-val amber" id="r-ms">—</span></div>
-        <div class="real-row"><span class="real-lbl">Upside / Downside</span><span class="real-val" id="r-upside">—</span></div>
-      </div>
-
-      <div class="bot-btns">
-        <button class="bsave" id="bsave-btn" onclick="salvar()">⊕ Salvar preço teto</button>
-        <button class="breset" onclick="resetar()">↺ Limpar campos</button>
-      </div>
-    </div>
-
-    <!-- RIGHT -->
-    <div class="right">
-      <div class="hist-block">
-        <p class="sec-title" style="margin-bottom:12px;">Lucros líquidos históricos (R$)</p>
-        <div class="hist-grid" id="hist-grid"></div>
-      </div>
-
-      <div>
-        <div class="right-hdr" style="margin-bottom:12px;">
-          <p class="sec-title" style="margin:0;">Fluxo de caixa descontado</p>
-          <div class="tgl">
-            <button class="tbtn" id="btn3" onclick="setHist(3)">3 anos</button>
-            <button class="tbtn active" id="btn5" onclick="setHist(5)">5 anos</button>
+      <div class="body">
+        <div class="dash-hero">
+          <div class="hero-text">
+            <h2>Minhas <em>análises</em></h2>
+            <p id="dash-sub">—</p>
+          </div>
+          <div class="stats-row">
+            <div class="stat-pill"><span class="sp-lbl">Total</span><span class="sp-val" id="st-total">0</span></div>
+            <div class="stat-pill">
+              <span class="sp-lbl">Oportunidade</span
+              ><span class="sp-val" style="color: var(--green)" id="st-ok">0</span>
+            </div>
+            <div class="stat-pill">
+              <span class="sp-lbl">Acima do teto</span
+              ><span class="sp-val" style="color: var(--red)" id="st-bad">0</span>
+            </div>
           </div>
         </div>
-        <div class="tbl-wrap tbl-scroll">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">◈</div>
+          <h3>Nenhuma análise ainda</h3>
+          <p>Clique em "Nova análise" para calcular o preço teto de uma empresa pelo método DCF.</p>
+          <button class="btn btn-primary" onclick="irParaCalc(null)" style="margin-top: 6px">Começar agora</button>
+        </div>
+        <div class="tbl-wrap tbl-scroll" id="dash-table-wrap" style="display: none">
           <table>
-            <thead><tr><th style="width:80px;">Ano</th><th>Lucro líquido</th><th>Crescimento</th><th>VPL</th></tr></thead>
-            <tbody id="tbl-body"></tbody>
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Preço teto</th>
+                <th>Preço atual</th>
+                <th>Margem</th>
+                <th>Status</th>
+                <th>Atualizado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="dash-tbody"></tbody>
           </table>
         </div>
       </div>
+    </div>
 
-      <div class="sum-grid">
-        <div class="scard"><p class="slbl">VPL fluxos</p><p class="sval blue" id="s-vpl">—</p><p class="ssub">anos projetados</p></div>
-        <div class="scard"><p class="slbl">VPL perpetuidade</p><p class="sval blue" id="s-vt">—</p><p class="ssub">valor terminal</p></div>
-        <div class="scard hl"><p class="slbl">Valor intrínseco</p><p class="sval green" id="s-intrinseco">—</p><p class="ssub">por ação</p></div>
-        <div class="scard hl"><p class="slbl">Margem de segurança</p><p class="sval amber" id="s-ms">—</p><p class="ssub" id="s-ms-sub">preço atual vs intrínseco</p></div>
+    <!-- ════════════ TELA 2 — CALCULADORA ════════════ -->
+    <div id="screen-calc" class="screen">
+      <div class="topbar">
+        <div class="brand" style="gap: 8px; align-items: center">
+          <button class="btn btn-ghost btn-sm" onclick="irParaDashboard()" style="gap: 5px">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            Voltar
+          </button>
+          <span style="color: var(--text3); font-family: var(--mono); font-size: 12px">/</span>
+          <span style="font-family: var(--mono); font-size: 12px; color: var(--text3)" id="topbar-mode"
+            >nova análise</span
+          >
+        </div>
+        <div class="topbar-empresa">
+          <label>Ticker</label>
+          <input
+            type="text"
+            id="empresa-nome"
+            placeholder="ex: ITUB4"
+            onchange="this.value=this.value.toUpperCase();recalc()"
+          />
+        </div>
       </div>
 
-      <div class="vbar">
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-          <span class="badge warn" id="vbadge">Aguardando dados</span>
-          <span class="vdet" id="vdet">Preencha os lucros históricos e o preço atual</span>
+      <div class="calc-body">
+        <!-- LEFT -->
+        <div class="left">
+          <div class="prem-block">
+            <p class="sec-title">Premissas</p>
+            <div class="prem-row">
+              <span class="prem-lbl">Taxa de desconto</span>
+              <div class="piw">
+                <input type="number" id="td" value="13" min="1" max="50" step="0.5" onchange="recalc()" /><span>%</span>
+              </div>
+            </div>
+            <div class="prem-row">
+              <span class="prem-lbl">Crescimento esperado</span>
+              <div class="piw">
+                <input type="number" id="g-esperado" value="11" min="0.1" max="30" step="0.1" onchange="recalc()" /><span>%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="prem-block">
+            <p class="sec-title">Dados da empresa</p>
+            <div class="prem-row">
+              <span class="prem-lbl">Total de ações emitidas</span>
+              <div class="piw" style="padding: 5px 8px">
+                <input
+                  type="number"
+                  id="n-acoes"
+                  placeholder="ex: 500000000"
+                  min="1"
+                  step="1000"
+                  onchange="recalc()"
+                  class="wide"
+                />
+              </div>
+            </div>
+            <div class="prem-row">
+              <span class="prem-lbl">Ações em tesouraria</span>
+              <div class="piw" style="padding: 5px 8px">
+                <input type="number" id="n-tesouraria" value="0" min="0" step="1000" onchange="recalc()" class="wide" />
+              </div>
+            </div>
+            <div class="prem-row" style="border-bottom: 1px solid var(--border)">
+              <span class="prem-lbl" style="color: var(--text3); font-size: 12px">Ações ex-tesouraria</span>
+              <span class="real-val blue" id="r-acoes-ex" style="font-size: 12px">—</span>
+            </div>
+            <div class="prem-row">
+              <span class="prem-lbl">Dívida líquida</span>
+              <div class="piw">
+                <input type="number" id="divida" value="0" step="10" onchange="recalc()" /><span>R$ mi</span>
+              </div>
+            </div>
+            <div class="prem-row">
+              <span class="prem-lbl">Preço atual</span>
+              <div class="piw">
+                <input type="number" id="preco-atual" placeholder="0,00" min="0" step="0.01" onchange="recalc()" /><span
+                  >R$</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div>
+            <p class="sec-title">Resultado</p>
+            <div class="real-row">
+              <span class="real-lbl">Market cap</span><span class="real-val blue" id="r-mcap">—</span>
+            </div>
+            <div class="real-row">
+              <span class="real-lbl">Valor intrínseco/ação</span><span class="real-val blue" id="r-intrinseco">—</span>
+            </div>
+            <div class="real-row">
+              <span class="real-lbl">Preço teto</span><span class="real-val green" id="r-teto">—</span>
+            </div>
+            <div class="real-row">
+              <span class="real-lbl">Margem de segurança</span><span class="real-val amber" id="r-ms">—</span>
+            </div>
+            <div class="real-row">
+              <span class="real-lbl">Upside / Downside</span><span class="real-val" id="r-upside">—</span>
+            </div>
+          </div>
+
+          <div class="bot-btns">
+            <button class="bsave" id="bsave-btn" onclick="salvar()">⊕ Salvar preço teto</button>
+            <button class="breset" onclick="resetar()">↺ Limpar campos</button>
+          </div>
         </div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);" id="vpl-lbl"></div>
+
+        <!-- RIGHT -->
+        <div class="right">
+          <div class="hist-block">
+            <p class="sec-title" style="margin-bottom: 12px">Lucros líquidos históricos (R$)</p>
+            <div class="hist-grid" id="hist-grid"></div>
+          </div>
+
+          <div>
+            <div class="right-hdr" style="margin-bottom: 12px">
+              <p class="sec-title" style="margin: 0">Fluxo de caixa descontado</p>
+              <div class="tgl">
+                <button class="tbtn" id="btn3" onclick="setHist(3)">3 anos</button>
+                <button class="tbtn active" id="btn5" onclick="setHist(5)">5 anos</button>
+              </div>
+            </div>
+            <div class="tbl-wrap tbl-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 80px">Ano</th>
+                    <th>Lucro líquido</th>
+                    <th>Crescimento</th>
+                    <th>VPL</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="sum-grid">
+            <div class="scard">
+              <p class="slbl">VPL fluxos</p>
+              <p class="sval blue" id="s-vpl">—</p>
+              <p class="ssub">anos projetados</p>
+            </div>
+            <div class="scard">
+              <p class="slbl">VPL perpetuidade</p>
+              <p class="sval blue" id="s-vt">—</p>
+              <p class="ssub">valor terminal</p>
+            </div>
+            <div class="scard hl">
+              <p class="slbl">Valor intrínseco</p>
+              <p class="sval green" id="s-intrinseco">—</p>
+              <p class="ssub">por ação</p>
+            </div>
+            <div class="scard hl">
+              <p class="slbl">Margem de segurança</p>
+              <p class="sval amber" id="s-ms">—</p>
+              <p class="ssub" id="s-ms-sub">preço atual vs intrínseco</p>
+            </div>
+          </div>
+
+          <div class="vbar">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+              <span class="badge warn" id="vbadge">Aguardando dados</span>
+              <span class="vdet" id="vdet">Preencha os lucros históricos e o preço atual</span>
+            </div>
+            <div style="font-family: var(--mono); font-size: 11px; color: var(--text3)" id="vpl-lbl"></div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
-
-<script>
-// ─── CONSTANTES ──────────────────────────────────────────────────────────────
-const ANO_ATUAL     = new Date().getFullYear();
-const ANOS_HIST     = Array.from({length:5},(_,i)=>ANO_ATUAL-5+i);
-const ANO_BASE_PROJ = ANO_ATUAL - 1;
-const LS_KEY        = 'dcf_v3';
-
-// ─── ESTADO ──────────────────────────────────────────────────────────────────
-let histAnos    = 5;
-let perpRate    = 3.0;
-let projGrowths = [3,5,5,5,5];
-const hrv       = [0,0,0,0,0]; // hist raw values
-let editingTicker = null; // ticker sendo editado (null = nova análise)
-
-// ─── LOCALSTORAGE ─────────────────────────────────────────────────────────────
-function getList(){ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }
-function setList(a){ localStorage.setItem(LS_KEY,JSON.stringify(a)); }
-
-// ─── FORMATAÇÃO ──────────────────────────────────────────────────────────────
-function fmtBRL(v){
-  if(isNaN(v)||!isFinite(v)) return '—';
-  return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-function fmtShort(v){
-  if(isNaN(v)||!isFinite(v)) return '—';
-  const a=Math.abs(v),s=v<0?'-':'';
-  if(a>=1e9) return s+'R$ '+(a/1e9).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' bi';
-  if(a>=1e6) return s+'R$ '+(a/1e6).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' mi';
-  if(a>=1e3) return s+'R$ '+(a/1e3).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' mil';
-  return fmtBRL(v);
-}
-function fmtMoney(v){ return (!v&&v!==0)?'':v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function parseMoney(s){ return !s?0:parseFloat(s.replace(/[R$\s]/g,'').replace(/\./g,'').replace(',','.'))||0; }
-function fmtNum(v){ return (!v&&v!==0)?'—':v.toLocaleString('pt-BR'); }
-
-// ─── NAVEGAÇÃO ────────────────────────────────────────────────────────────────
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-function irParaDashboard(){ renderDash(); showScreen('screen-dash'); }
-
-function irParaCalc(ticker){
-  editingTicker = ticker;
-  document.getElementById('topbar-mode').textContent = ticker ? `editando ${ticker}` : 'nova análise';
-  if(ticker){
-    const entry = getList().find(s=>s.ticker===ticker);
-    if(entry) carregarPremissas(entry);
-  } else {
-    resetarSilencioso();
-  }
-  showScreen('screen-calc');
-}
-
-// ─── CARREGAR PREMISSAS SALVAS ────────────────────────────────────────────────
-function carregarPremissas(e){
-  document.getElementById('empresa-nome').value = e.ticker||'';
-  document.getElementById('td').value           = e.td||13;
-  document.getElementById('n-acoes').value      = e.nAcoes||'';
-  document.getElementById('n-tesouraria').value = e.nTesouraria||0;
-  document.getElementById('divida').value       = e.divida||0;
-  document.getElementById('preco-atual').value  = e.precoAtual||'';
-  if(e.hist) e.hist.forEach((v,i)=>{ hrv[i]=v||0; const el=document.getElementById('hist'+i); if(el) el.value=v?fmtMoney(v):''; });
-  if(e.projGrowths) projGrowths=[...e.projGrowths]; else projGrowths=[3,5,5,5,5];
-  perpRate  = e.perpRate||3.0;
-  histAnos  = e.histAnos||5;
-  document.getElementById('btn3').classList.toggle('active',histAnos===3);
-  document.getElementById('btn5').classList.toggle('active',histAnos===5);
-  recalc();
-}
-
-// ─── DASHBOARD ────────────────────────────────────────────────────────────────
-function renderDash(){
-  const list=getList();
-  const tbody=document.getElementById('dash-tbody');
-  const tableWrap=document.getElementById('dash-table-wrap');
-  const empty=document.getElementById('empty-state');
-  let ok=0,bad=0;
-  list.forEach(s=>{
-    const pa=parseFloat(s.precoAtual)||0, vi=s.intrinsecNum||0;
-    if(pa>0&&vi>0){ if(pa<=vi)ok++; else bad++; }
-  });
-  document.getElementById('st-total').textContent=list.length;
-  document.getElementById('st-ok').textContent=ok;
-  document.getElementById('st-bad').textContent=bad;
-  const hoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
-  document.getElementById('dash-sub').textContent=list.length===0?'Nenhuma empresa analisada ainda':`${list.length} empresa${list.length>1?'s':''} analisada${list.length>1?'s':''} — ${hoje}`;
-  if(list.length===0){ empty.style.display='flex'; tableWrap.style.display='none'; return; }
-  empty.style.display='none'; tableWrap.style.display='block';
-  tbody.innerHTML=list.map((s,i)=>{
-    const pa=parseFloat(s.precoAtual)||0, vi=s.intrinsecNum||0;
-    const msNum=pa>0&&vi>0?(1-pa/vi)*100:null;
-    const msStr=msNum!==null?(msNum>=0?'+':'')+msNum.toFixed(1)+'%':'—';
-    const msClass=msNum===null?'dc':msNum>=0?'gpos':'gneg';
-    let statusBadge='<span class="upbadge warn">Sem preço</span>';
-    if(pa>0&&vi>0){
-      const cls=pa<=vi?'ok':'bad';
-      const lbl=pa<=vi?'Abaixo do teto':'Acima do teto';
-      statusBadge=`<span class="upbadge ${cls}">${lbl}</span>`;
-    }
-    return `<tr style="animation:slideUp .3s ease ${i*.05}s both">
-      <td style="text-align:left;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div class="ticker-badge">${s.ticker.slice(0,4)}</div>
-          <span style="font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:.03em;">${s.ticker}</span>
-        </div>
-      </td>
-      <td><span style="color:var(--green);">${s.intrinseco}</span></td>
-      <td><input type="number" class="card-preco-input" placeholder="0,00" step="0.01" value="${s.precoAtual||''}" data-idx="${i}" oninput="atualizarPA(this)" onchange="atualizarPA(this)"/></td>
-      <td class="${msClass}" style="font-family:var(--mono);font-weight:500;">${msStr}</td>
-      <td>${statusBadge}</td>
-      <td style="font-family:var(--mono);font-size:11px;color:var(--text3);white-space:nowrap;">${s.data}</td>
-      <td>
-        <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;">
-          <button class="card-edit" onclick="irParaCalc('${s.ticker}')">editar</button>
-          <span class="card-del" onclick="deletar(${i})" title="Remover">×</span>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-function atualizarPA(el){
-  const i=parseInt(el.dataset.idx);
-  const list=getList();
-  list[i].precoAtual=el.value;
-  setList(list);
-  renderDash();
-}
-
-function deletar(i){
-  if(!confirm('Remover esta análise?')) return;
-  const list=getList(); list.splice(i,1); setList(list); renderDash();
-}
-
-// ─── HIST INPUTS ─────────────────────────────────────────────────────────────
-function buildHistInputs(){
-  const grid=document.getElementById('hist-grid');
-  grid.innerHTML='';
-  for(let i=0;i<5;i++){
-    const d=document.createElement('div'); d.className='hist-item';
-    d.innerHTML=`<label>${ANOS_HIST[i]}</label><input type="text" id="hist${i}" placeholder="R$ 0,00" inputmode="numeric" autocomplete="off" data-idx="${i}"/>`;
-    grid.appendChild(d);
-    const inp=d.querySelector('input');
-    inp.addEventListener('focus',function(){ this.value=hrv[i]?String(hrv[i]):''; this.select(); });
-    inp.addEventListener('input',function(){ hrv[i]=parseMoney(this.value); recalc(); });
-    inp.addEventListener('blur',function(){ this.value=hrv[i]?fmtMoney(hrv[i]):''; });
-  }
-}
-
-function setHist(n){
-  histAnos=n;
-  document.getElementById('btn3').classList.toggle('active',n===3);
-  document.getElementById('btn5').classList.toggle('active',n===5);
-  recalc();
-}
-
-// ─── RECALCULO ────────────────────────────────────────────────────────────────
-function recalc(){
-  const td      =(parseFloat(document.getElementById('td').value)||13)/100;
-  const nTotal  =parseFloat(document.getElementById('n-acoes').value)||0;
-  const nTesoura=parseFloat(document.getElementById('n-tesouraria').value)||0;
-  const nAcoes  =Math.max(nTotal-nTesoura,1);
-  const divida  =(parseFloat(document.getElementById('divida').value)||0)*1e6;
-  const pa      =parseFloat(document.getElementById('preco-atual').value)||0;
-
-  // ações ex-tesouraria display
-  document.getElementById('r-acoes-ex').textContent = nTotal>0 ? fmtNum(nAcoes) : '—';
-
-  const hd=[...hrv];
-  const hs=hd.slice(hd.length-histAnos);
-  const as=ANOS_HIST.slice(ANOS_HIST.length-histAnos);
-
-  let rows='';
-  hs.forEach((l,i)=>{
-    let gh='<span class="dc">—</span>';
-    if(i>0&&hs[i-1]>0&&l>0){const g=(l/hs[i-1]-1)*100;gh=`<span class="${g>=0?'gpos':'gneg'}">${g>=0?'+':''}${g.toFixed(2)}%</span>`;}
-    rows+=`<tr class="hr"><td>${as[i]}</td><td>${l>0?fmtBRL(l):'<span class="dc">—</span>'}</td><td>${gh}</td><td><span class="dc">—</span></td></tr>`;
-  });
-
-  // Projeção: fluxo = lucro projetado (sem payout)
-  let lb=hd[hd.length-1]||0, vplF=0;
-  for(let i=0;i<projGrowths.length;i++){
-    lb=lb*(1+projGrowths[i]/100);
-    const vpl=lb/Math.pow(1+td,i+1);
-    vplF+=vpl;
-    rows+=`<tr class="pr"><td>${ANO_BASE_PROJ+i+1}</td><td>${fmtBRL(Math.round(lb))}</td>
-      <td><input type="number" class="gi" value="${projGrowths[i]}" min="-50" max="300" step="0.5" data-idx="${i}" oninput="updG(this)"/>
-        <span style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-left:2px;">%</span></td>
-      <td>${fmtShort(Math.round(vpl))}</td></tr>`;
-  }
-
-  // Valor terminal: Gordon Growth com FC do próximo período, descontado em n=3
-  let vplT=0;
-  if(td>perpRate/100){
-    const fcNext=lb*(1+perpRate/100);
-    const vt=fcNext/(td-perpRate/100);
-    vplT=vt/Math.pow(1+td,3); // n=3 replica comportamento da referência
-    rows+=`<tr class="perp-r"><td>Perpétuo</td><td>${fmtShort(Math.round(vt))}</td>
-      <td><div class="pc"><button class="pb" onclick="chgP(-0.5)">−</button><span class="prv">${perpRate.toFixed(1)}%</span><button class="pb" onclick="chgP(0.5)">+</button></div></td>
-      <td style="color:var(--green);font-weight:500;">${fmtShort(Math.round(vplT))}</td></tr>`;
-  }
-  document.getElementById('tbl-body').innerHTML=rows;
-
-  const vplTotal =vplF+vplT;
-  const vEmp     =vplTotal-divida;
-  const vAcao    =vEmp/nAcoes;
-  const prTeto   =vAcao;
-  const msNum    =pa>0&&vAcao>0?(1-pa/vAcao)*100:null;
-  const lpa      =(hd[hd.length-1]||0)/nAcoes;
-  const pl       =lpa>0?(prTeto/lpa).toFixed(1):'—';
-
-  document.getElementById('s-vpl').textContent        =fmtShort(Math.round(vplF));
-  document.getElementById('s-vt').textContent         =fmtShort(Math.round(vplT));
-  document.getElementById('s-intrinseco').textContent =fmtBRL(vAcao);
-  if(msNum!==null){
-    document.getElementById('s-ms').textContent=(msNum>=0?'+':'')+msNum.toFixed(1)+'%';
-    document.getElementById('s-ms').className='sval '+(msNum>=0?'green':'bad');
-    document.getElementById('s-ms-sub').textContent=msNum>=0?'margem disponível':'preço acima do intrínseco';
-  } else {
-    document.getElementById('s-ms').textContent='—';
-    document.getElementById('s-ms').className='sval amber';
-    document.getElementById('s-ms-sub').textContent='informe o preço atual';
-  }
-  document.getElementById('r-mcap').textContent       =fmtShort(Math.round(vEmp));
-  document.getElementById('r-intrinseco').textContent =fmtBRL(vAcao);
-  document.getElementById('r-teto').textContent       =fmtBRL(prTeto);
-  if(msNum!==null){
-    document.getElementById('r-ms').textContent=(msNum>=0?'+':'')+msNum.toFixed(1)+'%';
-    document.getElementById('r-ms').className='real-val '+(msNum>=0?'amber':'red');
-  } else {
-    document.getElementById('r-ms').textContent='—';
-    document.getElementById('r-ms').className='real-val amber';
-  }
-  const up=pa>0?((vAcao/pa)-1)*100:null;
-  const uel=document.getElementById('r-upside');
-  if(up!==null){uel.textContent=(up>=0?'+':'')+up.toFixed(2)+'%';uel.className='real-val '+(up>=0?'green':'red');}
-  else{uel.textContent='—';uel.className='real-val';}
-
-  const badge=document.getElementById('vbadge'),det=document.getElementById('vdet'),plel=document.getElementById('vpl-lbl');
-  if(pa>0&&vAcao>0){
-    if(pa<=vAcao){badge.textContent='Abaixo do intrínseco';badge.className='badge ok';det.textContent=`Margem de ${msNum?.toFixed(1)}% disponível — upside de ${up?.toFixed(2)}%`;}
-    else{badge.textContent='Acima do intrínseco';badge.className='badge bad';det.textContent=`Preço atual ${Math.abs(up??0).toFixed(2)}% acima do valor calculado`;}
-    plel.textContent=`P/L implícito: ${pl}x`;
-  } else {
-    badge.textContent='Aguardando dados';badge.className='badge warn';
-    det.textContent='Preencha os lucros históricos e o preço atual';plel.textContent='';
-  }
-}
-
-function updG(el){ projGrowths[parseInt(el.dataset.idx)]=parseFloat(el.value)||0; recalc(); }
-function chgP(d){ perpRate=Math.max(0.5,Math.min(20,+(perpRate+d).toFixed(1))); recalc(); }
-
-// ─── SALVAR ──────────────────────────────────────────────────────────────────
-function salvar(){
-  const ticker=document.getElementById('empresa-nome').value.trim().toUpperCase();
-  if(!ticker){alert('Informe o ticker da empresa antes de salvar.');return;}
-  const viTxt=document.getElementById('s-intrinseco').textContent;
-  const viNum=parseFloat(viTxt.replace(/[R$\s]/g,'').replace(/\./g,'').replace(',','.'));
-  if(!viTxt||viTxt==='—'||isNaN(viNum)){alert('Preencha os dados para calcular o valor intrínseco antes de salvar.');return;}
-
-  const now=new Date();
-  const data=now.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})+' '+now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  const prTeto=fmtBRL(viNum); // teto = intrínseco
-  const entry={
-    ticker,
-    precoTeto: prTeto,   precoTetoNum: viNum,
-    intrinseco: viTxt,   intrinsecNum: viNum,
-    precoAtual: document.getElementById('preco-atual').value,
-    data,
-    // ── premissas ──
-    td:          parseFloat(document.getElementById('td').value)||13,
-    nAcoes:      parseFloat(document.getElementById('n-acoes').value)||0,
-    nTesouraria: parseFloat(document.getElementById('n-tesouraria').value)||0,
-    divida:      parseFloat(document.getElementById('divida').value)||0,
-    hist:        [...hrv],
-    projGrowths: [...projGrowths],
-    perpRate,
-    histAnos,
-  };
-
-  const list=getList();
-  const ei=list.findIndex(s=>s.ticker===ticker);
-  if(ei>=0){
-    if(!confirm(`Já existe uma análise de ${ticker}. Substituir?`)) return;
-    list[ei]=entry;
-  } else {
-    list.push(entry);
-  }
-  setList(list);
-  editingTicker=ticker;
-  document.getElementById('topbar-mode').textContent=`editando ${ticker}`;
-  const btn=document.getElementById('bsave-btn');
-  btn.textContent='✓ Salvo!';
-  setTimeout(()=>{btn.textContent='⊕ Salvar preço teto';},2000);
-}
-
-// ─── RESET ───────────────────────────────────────────────────────────────────
-function resetarSilencioso(){
-  document.getElementById('td').value=13;
-  document.getElementById('n-acoes').value='';
-  document.getElementById('n-tesouraria').value=0;
-  document.getElementById('divida').value=0;
-  document.getElementById('preco-atual').value='';
-  document.getElementById('empresa-nome').value='';
-  for(let i=0;i<5;i++){hrv[i]=0;const el=document.getElementById('hist'+i);if(el)el.value='';}
-  projGrowths=[3,5,5,5,5]; perpRate=3.0; histAnos=5;
-  document.getElementById('btn3').classList.remove('active');
-  document.getElementById('btn5').classList.add('active');
-  recalc();
-}
-function resetar(){ if(!confirm('Limpar todos os campos?')) return; resetarSilencioso(); }
-
-// ─── INIT ────────────────────────────────────────────────────────────────────
-buildHistInputs();
-recalc();
-irParaDashboard();
-</script>
-</body>
+    <script src="scipt.js"></script>
+  </body>
 </html>
-
