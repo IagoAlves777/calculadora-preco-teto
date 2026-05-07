@@ -97,7 +97,7 @@ function irParaCalc(ticker) {
 function carregarPremissas(e) {
   document.getElementById('empresa-nome').value = e.ticker || '';
   document.getElementById('td').value = e.td || 13;
-  document.getElementById('g-esperado').value = e.gEsperado || 11;
+
   document.getElementById('n-acoes').value = e.nAcoes || '';
   document.getElementById('n-tesouraria').value = e.nTesouraria || 0;
   document.getElementById('divida').value = e.divida || 0;
@@ -165,7 +165,7 @@ function renderDash() {
       }
       return `<tr style="animation:slideUp .3s ease ${i * 0.05}s both">
 <td style="text-align:left;">
-  <div style="display:flex;align-items:center;gap:8px;">
+  <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="irParaCalc('${s.ticker}')">
     <div class="ticker-badge">${s.ticker.slice(0, 4)}</div>
     <span style="font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:.03em;">${s.ticker}</span>
   </div>
@@ -288,16 +288,14 @@ function recalc() {
 
       <td>
         <input
-          type="number"
+          type="text"
           class="gi"
-          value="${Math.round(lb)}"
-          step="1000000"
+          value="${fmtMoney(Math.round(lb))}"
           data-idx="${i}"
-          onchange="updLucro(this)"
-          style="
-            width:140px;
-            text-align:right;
-          "
+          onfocus="this.select()"
+          oninput="updLucro(this)"
+          onblur="updLucroBlur(this)"
+          style="width:150px;text-align:right;"
         />
       </td>
 
@@ -418,7 +416,7 @@ function updG(el) {
 
 function updLucro(el) {
   const idx = parseInt(el.dataset.idx);
-  const novoLucro = parseFloat(el.value) || 0;
+  const novoLucro = parseMoney(el.value) || 0;
 
   const hd = [...hrv];
   let lbPrev = hd[hd.length - 1] || 0;
@@ -432,6 +430,10 @@ function updLucro(el) {
 
   lucrosProjetados[idx] = novoLucro;
   lucrosManuais[idx] = true;
+}
+
+function updLucroBlur(el) {
+  updLucro(el);
   recalc();
 }
 
@@ -475,7 +477,7 @@ function salvar() {
     data,
     // ── premissas ──
     td: parseFloat(document.getElementById('td').value) || 13,
-    gEsperado: parseFloat(document.getElementById('g-esperado').value) || 11,
+
     nAcoes: parseFloat(document.getElementById('n-acoes').value) || 0,
     nTesouraria: parseFloat(document.getElementById('n-tesouraria').value) || 0,
     divida: parseFloat(document.getElementById('divida').value) || 0,
@@ -506,7 +508,7 @@ function salvar() {
 // ─── RESET ───────────────────────────────────────────────────────────────────
 function resetarSilencioso() {
   document.getElementById('td').value = 13;
-  document.getElementById('g-esperado').value = 11;
+
   document.getElementById('n-acoes').value = '';
   document.getElementById('n-tesouraria').value = 0;
   document.getElementById('divida').value = 0;
