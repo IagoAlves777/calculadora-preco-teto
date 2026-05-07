@@ -393,25 +393,21 @@ function recalc() {
       </td>
 
       <td>
-        <input
-          type="number"
-          class="gi"
-          value="${parseFloat(projGrowths[i].toFixed(2))}"
-          min="-50"
-          max="300"
-          step="0.5"
-          data-idx="${i}"
-          onchange="updG(this)"
-        />
-
-        <span style="
-          font-family:var(--mono);
-          font-size:11px;
-          color:var(--text3);
-          margin-left:2px;
-        ">
-          %
-        </span>
+        <div class="pc">
+          <button class="pb" onclick="chgG(${i}, -0.5)">−</button>
+          <input
+            type="number"
+            class="gi"
+            value="${parseFloat(projGrowths[i].toFixed(2))}"
+            min="-50"
+            max="300"
+            step="0.5"
+            data-idx="${i}"
+            onchange="updG(this)"
+          />
+          <span style="font-family:var(--mono);font-size:11px;color:var(--text3);">%</span>
+          <button class="pb" onclick="chgG(${i}, 0.5)">+</button>
+        </div>
       </td>
 
       <td>
@@ -502,6 +498,12 @@ function recalc() {
 function updG(el) {
   const idx = parseInt(el.dataset.idx);
   projGrowths[idx] = parseFloat((parseFloat(el.value) || 0).toFixed(2));
+  lucrosManuais[idx] = false;
+  recalc();
+}
+
+function chgG(idx, delta) {
+  projGrowths[idx] = parseFloat((projGrowths[idx] + delta).toFixed(2));
   lucrosManuais[idx] = false;
   recalc();
 }
