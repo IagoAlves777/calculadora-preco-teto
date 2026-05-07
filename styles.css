@@ -8,6 +8,9 @@
   --green: #00e07a;
   --green-dim: rgba(0, 224, 122, 0.1);
   --green-mid: rgba(0, 224, 122, 0.22);
+  --purple: #9d7cfc;
+  --purple-dim: rgba(157, 124, 252, 0.1);
+  --purple-mid: rgba(157, 124, 252, 0.22);
   --red: #ff4d6a;
   --red-dim: rgba(255, 77, 106, 0.1);
   --blue: #3d9dff;
@@ -16,7 +19,7 @@
   --amber-dim: rgba(245, 166, 35, 0.1);
   --text: #e8efe9;
   --text2: #7a9082;
-  --text3: #4a5e53;
+  --text3: #728478;
   --mono: 'DM Mono', monospace;
   --sans: 'Syne', sans-serif;
 }
@@ -41,8 +44,8 @@ body::before {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background-image: linear-gradient(rgba(0, 224, 122, 0.013) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 224, 122, 0.013) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(157, 124, 252, 0.013) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(157, 124, 252, 0.013) 1px, transparent 1px);
   background-size: 44px 44px;
 }
 
@@ -110,8 +113,8 @@ body::before {
 }
 
 .btn-primary {
-  background: var(--green);
-  color: #050f09;
+  background: var(--purple);
+  color: #fff;
 }
 
 .btn-primary:hover {
@@ -159,7 +162,7 @@ body::before {
 }
 
 .hero-text h2 em {
-  color: var(--green);
+  color: var(--purple);
   font-style: normal;
 }
 
@@ -218,8 +221,8 @@ body::before {
   width: 58px;
   height: 58px;
   border-radius: 14px;
-  background: var(--green-dim);
-  border: 1px solid rgba(0, 224, 122, 0.2);
+  background: var(--purple-dim);
+  border: 1px solid rgba(157, 124, 252, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -256,15 +259,15 @@ body::before {
   width: 34px;
   height: 34px;
   border-radius: 8px;
-  background: var(--green-dim);
-  border: 1px solid rgba(0, 224, 122, 0.18);
+  background: var(--purple-dim);
+  border: 1px solid rgba(157, 124, 252, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--mono);
   font-size: 10px;
   font-weight: 500;
-  color: var(--green);
+  color: var(--purple);
   letter-spacing: 0.03em;
   flex-shrink: 0;
 }
@@ -282,8 +285,8 @@ body::before {
 }
 
 .card-edit:hover {
-  color: var(--green);
-  border-color: rgba(0, 224, 122, 0.3);
+  color: var(--purple);
+  border-color: rgba(157, 124, 252, 0.3);
 }
 
 .card-del {
@@ -313,7 +316,7 @@ body::before {
 }
 
 .card-preco-input:focus {
-  border-color: var(--green);
+  border-color: var(--purple);
 }
 
 .upbadge {
@@ -409,7 +412,7 @@ body::before {
 }
 
 .topbar-empresa input:focus {
-  border-color: var(--green);
+  border-color: var(--purple);
 }
 
 .calc-body {
@@ -468,7 +471,7 @@ body::before {
 }
 
 .piw:focus-within {
-  border-color: var(--green);
+  border-color: var(--purple);
 }
 
 .piw input {
@@ -494,8 +497,8 @@ body::before {
 }
 
 .g-impl-row {
-  background: var(--green-dim);
-  border: 1px solid rgba(0, 224, 122, 0.15);
+  background: var(--purple-dim);
+  border: 1px solid rgba(157, 124, 252, 0.15);
   border-radius: 8px;
   padding: 8px 12px;
   display: flex;
@@ -513,7 +516,7 @@ body::before {
   font-family: var(--mono);
   font-size: 14px;
   font-weight: 500;
-  color: var(--green);
+  color: var(--purple);
 }
 
 .nota {
@@ -581,8 +584,8 @@ body::before {
 }
 
 .bsave {
-  background: var(--green);
-  color: #050f09;
+  background: var(--purple);
+  color: #fff;
   border: none;
   border-radius: 8px;
   padding: 11px;
@@ -656,8 +659,8 @@ body::before {
 }
 
 .tbtn.active {
-  background: var(--green-mid);
-  color: var(--green);
+  background: var(--purple-mid);
+  color: var(--purple);
 }
 
 .hist-block {
@@ -704,7 +707,7 @@ body::before {
 }
 
 .hist-item input:focus {
-  border-color: var(--green);
+  border-color: var(--purple);
 }
 
 .hist-item input::placeholder {
@@ -788,11 +791,11 @@ tbody td:first-child {
 }
 
 .perp-r {
-  background: rgba(0, 224, 122, 0.04);
+  background: rgba(157, 124, 252, 0.04);
 }
 
 .perp-r td:first-child {
-  color: var(--green);
+  color: var(--purple);
   font-style: italic;
 }
 
@@ -831,7 +834,7 @@ tbody td:first-child {
 }
 
 .gi:focus {
-  border-color: var(--green);
+  border-color: var(--purple);
 }
 
 .pc {
@@ -860,15 +863,15 @@ tbody td:first-child {
 }
 
 .pb:hover {
-  border-color: var(--green);
-  color: var(--green);
+  border-color: var(--purple);
+  color: var(--purple);
 }
 
 .prv {
   font-family: var(--mono);
   font-size: 13px;
   font-weight: 500;
-  color: var(--green);
+  color: var(--purple);
   min-width: 36px;
   text-align: center;
 }
@@ -892,8 +895,8 @@ tbody td:first-child {
 }
 
 .scard.hl {
-  border-color: rgba(0, 224, 122, 0.28);
-  background: var(--green-dim);
+  border-color: rgba(157, 124, 252, 0.28);
+  background: var(--purple-dim);
 }
 
 .slbl {
@@ -1039,7 +1042,7 @@ input[type='number'] {
 }
 
 .dash-footer a:hover {
-  color: var(--green);
+  color: var(--purple);
 }
 
 .footer-sep {
