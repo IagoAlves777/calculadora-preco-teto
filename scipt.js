@@ -110,6 +110,59 @@ function fmtNum(v) {
   return !v && v !== 0 ? '—' : v.toLocaleString('pt-BR');
 }
 
+// ─── MODAL JSON ───────────────────────────────────────────────────────────────
+function abrirModalJSON() {
+  document.getElementById('json-input').value = '';
+  document.getElementById('json-error').textContent = '';
+  document.getElementById('modal-json').style.display = 'flex';
+  setTimeout(() => document.getElementById('json-input').focus(), 50);
+}
+
+function fecharModalJSON(e) {
+  if (e && e.target !== document.getElementById('modal-json')) return;
+  document.getElementById('modal-json').style.display = 'none';
+}
+
+function importarJSON() {
+  const raw = document.getElementById('json-input').value.trim();
+  const errEl = document.getElementById('json-error');
+  errEl.textContent = '';
+
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch (_) {
+    errEl.textContent = 'JSON inválido. Verifique o formato e tente novamente.';
+    return;
+  }
+
+  if (!Array.isArray(data)) {
+    errEl.textContent = 'O JSON precisa ser um array de objetos.';
+    return;
+  }
+
+  const porAno = new Map(
+    data
+      .filter((e) => /^\d{4}$/.test(String(e.year)))
+      .map((e) => [+e.year, e.value])
+  );
+
+  if (porAno.size === 0) {
+    errEl.textContent = 'Nenhum ano válido encontrado no JSON.';
+    return;
+  }
+
+  ANOS_HIST.forEach((ano, i) => {
+    if (!porAno.has(ano)) return;
+    hrv[i] = porAno.get(ano);
+    const el = document.getElementById('hist' + i);
+    if (el) el.value = fmtMoney(hrv[i]);
+  });
+
+  recalc();
+  document.getElementById('modal-json').style.display = 'none';
+}
+
 // ─── NAVEGAÇÃO ────────────────────────────────────────────────────────────────
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
