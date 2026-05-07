@@ -37,37 +37,46 @@ function exportarDados() {
   URL.revokeObjectURL(url);
 }
 
-function importarDados(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    try {
-      const imported = JSON.parse(e.target.result);
-      if (!Array.isArray(imported)) throw new Error();
-      const list = getList();
-      imported.forEach((entry) => {
-        if (!entry.ticker) return;
-        const idx = list.findIndex((s) => s.ticker === entry.ticker);
-        if (idx >= 0) list[idx] = entry;
-        else list.push(entry);
-      });
-      setList(list);
-      renderDash();
-      const btn = document.getElementById('btn-import');
-      const orig = btn.innerHTML;
-      btn.innerHTML = '✓ Importado';
-      btn.style.color = 'var(--green)';
-      setTimeout(() => {
-        btn.innerHTML = orig;
-        btn.style.color = '';
-      }, 2000);
-    } catch (_) {
-      alert('Arquivo inválido. Use um arquivo exportado por esta calculadora.');
-    }
-    input.value = '';
-  };
-  reader.readAsText(file);
+function abrirModalImport() {
+  document.getElementById('import-input').value = '';
+  document.getElementById('import-error').textContent = '';
+  document.getElementById('modal-import').style.display = 'flex';
+  setTimeout(() => document.getElementById('import-input').focus(), 50);
+}
+
+function fecharModalImport(e) {
+  if (e && e.target !== document.getElementById('modal-import')) return;
+  document.getElementById('modal-import').style.display = 'none';
+}
+
+function importarDados() {
+  const raw = document.getElementById('import-input').value.trim();
+  const errEl = document.getElementById('import-error');
+  errEl.textContent = '';
+
+  let imported;
+  try {
+    imported = JSON.parse(raw);
+  } catch (_) {
+    errEl.textContent = 'JSON inválido. Verifique o formato e tente novamente.';
+    return;
+  }
+
+  if (!Array.isArray(imported)) {
+    errEl.textContent = 'O JSON precisa ser um array de objetos.';
+    return;
+  }
+
+  const list = getList();
+  imported.forEach((entry) => {
+    if (!entry.ticker) return;
+    const idx = list.findIndex((s) => s.ticker === entry.ticker);
+    if (idx >= 0) list[idx] = entry;
+    else list.push(entry);
+  });
+  setList(list);
+  renderDash();
+  document.getElementById('modal-import').style.display = 'none';
 }
 
 // ─── FORMATAÇÃO ──────────────────────────────────────────────────────────────
