@@ -24,7 +24,10 @@ function setList(a) {
 // ─── EXPORTAR / IMPORTAR ──────────────────────────────────────────────────────
 function exportarDados() {
   const list = getList();
-  if (list.length === 0) { alert('Nenhuma análise para exportar.'); return; }
+  if (list.length === 0) {
+    alert('Nenhuma análise para exportar.');
+    return;
+  }
   const blob = new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -55,14 +58,16 @@ function importarDados(input) {
       const orig = btn.innerHTML;
       btn.innerHTML = '✓ Importado';
       btn.style.color = 'var(--green)';
-      setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+      setTimeout(() => {
+        btn.innerHTML = orig;
+        btn.style.color = '';
+      }, 2000);
     } catch (_) {
       alert('Arquivo inválido. Use um arquivo exportado por esta calculadora.');
     }
     input.value = '';
   };
   reader.readAsText(file);
-}
 }
 
 // ─── FORMATAÇÃO ──────────────────────────────────────────────────────────────
@@ -76,24 +81,15 @@ function fmtShort(v) {
     s = v < 0 ? '-' : '';
   if (a >= 1e9)
     return (
-      s +
-      'R$ ' +
-      (a / 1e9).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) +
-      ' bi'
+      s + 'R$ ' + (a / 1e9).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' bi'
     );
   if (a >= 1e6)
     return (
-      s +
-      'R$ ' +
-      (a / 1e6).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) +
-      ' mi'
+      s + 'R$ ' + (a / 1e6).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' mi'
     );
   if (a >= 1e3)
     return (
-      s +
-      'R$ ' +
-      (a / 1e3).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) +
-      ' mil'
+      s + 'R$ ' + (a / 1e3).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' mil'
     );
   return fmtBRL(v);
 }
@@ -216,8 +212,8 @@ function renderDash() {
 </td>
 <td><span style="color:var(--green);">${s.intrinseco}</span></td>
 <td><input type="number" class="card-preco-input" placeholder="0,00" step="0.01" value="${
-  s.precoAtual || ''
-}" data-idx="${i}" onchange="atualizarPA(this)" onchange="atualizarPA(this)"/></td>
+        s.precoAtual || ''
+      }" data-idx="${i}" onchange="atualizarPA(this)" onchange="atualizarPA(this)"/></td>
 <td class="${msClass}" style="font-family:var(--mono);font-weight:500;">${msStr}</td>
 <td>${statusBadge}</td>
 <td style="font-family:var(--mono);font-size:11px;color:var(--text3);white-space:nowrap;">${s.data}</td>
@@ -382,8 +378,8 @@ function recalc() {
     vplT = vt / Math.pow(1 + td, terminalDiscountYears);
     rows += `<tr class="perp-r"><td>Perpétuo</td><td>${fmtShort(Math.round(vt))}</td>
 <td><div class="pc"><button class="pb" onclick="chgP(-0.5)">−</button><span class="prv">${perpRate.toFixed(
-  1
-)}%</span><button class="pb" onclick="chgP(0.5)">+</button></div></td>
+      1
+    )}%</span><button class="pb" onclick="chgP(0.5)">+</button></div></td>
 <td style="color:var(--green);font-weight:500;">${fmtShort(Math.round(vplT))}</td></tr>`;
   }
   document.getElementById('tbl-body').innerHTML = rows;
@@ -402,8 +398,7 @@ function recalc() {
   if (msNum !== null) {
     document.getElementById('s-ms').textContent = (msNum >= 0 ? '+' : '') + msNum.toFixed(1) + '%';
     document.getElementById('s-ms').className = 'sval ' + (msNum >= 0 ? 'green' : 'bad');
-    document.getElementById('s-ms-sub').textContent =
-      msNum >= 0 ? 'margem disponível' : 'preço acima do intrínseco';
+    document.getElementById('s-ms-sub').textContent = msNum >= 0 ? 'margem disponível' : 'preço acima do intrínseco';
   } else {
     document.getElementById('s-ms').textContent = '—';
     document.getElementById('s-ms').className = 'sval amber';
