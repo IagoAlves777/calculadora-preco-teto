@@ -364,6 +364,16 @@ body::before {
   background: var(--amber);
 }
 
+.upbadge.info {
+  background: var(--blue-dim);
+  color: var(--blue);
+  border: 1px solid rgba(61, 157, 255, 0.18);
+}
+
+.upbadge.info::before {
+  background: var(--blue);
+}
+
 /* ═══════════ CALCULATOR ═══════════ */
 #screen-calc {
   height: 100vh;
@@ -792,6 +802,14 @@ tbody td:first-child {
 
 .gneg {
   color: var(--red);
+}
+
+.blue {
+  color: var(--blue);
+}
+
+.amber {
+  color: var(--amber);
 }
 
 .dc {

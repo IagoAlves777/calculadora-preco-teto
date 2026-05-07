@@ -196,13 +196,13 @@ function renderDash() {
         vi = s.intrinsecNum || 0;
       const msNum = pa > 0 && vi > 0 ? (1 - pa / vi) * 100 : null;
       const msStr = msNum !== null ? (msNum >= 0 ? '+' : '') + msNum.toFixed(1) + '%' : '—';
-      const msClass = msNum === null ? 'dc' : msNum >= 0 ? 'gpos' : 'gneg';
+      const msTier = msNum === null ? null : msNum < 0 ? 'red' : msNum < 10 ? 'amber' : msNum < 20 ? 'blue' : 'green';
+      const msClass = msTier === null ? 'dc' : msTier === 'green' ? 'gpos' : msTier === 'red' ? 'gneg' : msTier;
       let statusBadge = '<span class="upbadge warn">Sem preço</span>';
-      if (pa > 0 && vi > 0) {
-        const cls = pa <= vi ? 'ok' : 'bad';
-        const lbl = pa <= vi ? 'Abaixo do teto' : 'Acima do teto';
-        statusBadge = `<span class="upbadge ${cls}">${lbl}</span>`;
-      }
+      if (msTier === 'red')   statusBadge = '<span class="upbadge bad">Loucura comprar</span>';
+      if (msTier === 'amber') statusBadge = '<span class="upbadge warn">Eu gostaria de um preço melhor</span>';
+      if (msTier === 'blue')  statusBadge = '<span class="upbadge info">Ótimo preço</span>';
+      if (msTier === 'green') statusBadge = '<span class="upbadge ok">Preço bom pra caralho</span>';
       return `<tr style="animation:slideUp .3s ease ${i * 0.05}s both">
 <td style="text-align:left;">
   <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="irParaCalc('${s.ticker}')">
