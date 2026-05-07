@@ -21,6 +21,50 @@ function setList(a) {
   localStorage.setItem(LS_KEY, JSON.stringify(a));
 }
 
+// ─── EXPORTAR / IMPORTAR ──────────────────────────────────────────────────────
+function exportarDados() {
+  const list = getList();
+  if (list.length === 0) { alert('Nenhuma análise para exportar.'); return; }
+  const blob = new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `preco-teto-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importarDados(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!Array.isArray(imported)) throw new Error();
+      const list = getList();
+      imported.forEach((entry) => {
+        if (!entry.ticker) return;
+        const idx = list.findIndex((s) => s.ticker === entry.ticker);
+        if (idx >= 0) list[idx] = entry;
+        else list.push(entry);
+      });
+      setList(list);
+      renderDash();
+      const btn = document.getElementById('btn-import');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✓ Importado';
+      btn.style.color = 'var(--green)';
+      setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+    } catch (_) {
+      alert('Arquivo inválido. Use um arquivo exportado por esta calculadora.');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+}
+
 // ─── FORMATAÇÃO ──────────────────────────────────────────────────────────────
 function fmtBRL(v) {
   if (isNaN(v) || !isFinite(v)) return '—';
