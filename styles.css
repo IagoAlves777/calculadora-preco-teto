@@ -1002,6 +1002,32 @@ input[type='number'] {
   -moz-appearance: textfield;
 }
 
+.dash-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 16px 28px;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.dash-footer a {
+  color: var(--text3);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.dash-footer a:hover {
+  color: var(--green);
+}
+
+.footer-sep {
+  opacity: 0.4;
+}
+
 @media (max-width: 860px) {
   .calc-body {
     grid-template-columns: 1fr;
