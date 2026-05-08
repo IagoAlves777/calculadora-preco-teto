@@ -48,7 +48,7 @@ const systemConfig = defineConfig({
       height: '33.7px',
     },
     'input[type=number]': {
-      MozAppearance: 'textfield',
+      appearance: 'textfield',
     },
     'input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button': {
       WebkitAppearance: 'none',
