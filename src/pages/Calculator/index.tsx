@@ -483,7 +483,7 @@ const Calculator: React.FC = () => {
                       value={value || ''}
                       placeholder="0"
                       min={0}
-                      onChange={(event) => onChange(parseFloat(event.target.value) || 0)}
+                      onChange={(event) => onChange(parseInt(event.target.value.replace(/\./g, ''), 10) || 0)}
                       textAlign="right"
                       width="130px"
                       {...INPUT_BASE_PROPS}
