@@ -2,21 +2,27 @@
 
 Calculadora pessoal para estimar o **preço teto** de ações da bolsa brasileira pelo método de **Fluxo de Caixa Descontado (DCF)**.
 
-O preço teto é o valor máximo que faz sentido pagar por uma ação considerando o crescimento esperado dos lucros da empresa e uma taxa de retorno mínima desejada. Se a ação estiver abaixo desse valor, existe uma margem de segurança no investimento.
+O preço teto é o valor máximo que faz sentido pagar por uma ação considerando o crescimento esperado dos lucros e uma taxa de retorno mínima desejada. Se a ação estiver abaixo desse valor, existe margem de segurança no investimento.
 
 ---
 
-## Como abrir
+## Stack
 
-Não precisa instalar nada. É só seguir os passos:
+- React 19 + TypeScript + Vite
+- Chakra UI v3
+- TanStack Table v8
+- React Router v7
 
-1. Clique em **Code → Download ZIP** no topo desta página
-2. Extraia o arquivo ZIP em qualquer pasta do seu computador
-3. Abra a pasta extraída e dê dois cliques no arquivo **`calculadora-preco-teto.html`**
+---
 
-O arquivo vai abrir direto no seu navegador (Chrome, Firefox, Edge — qualquer um funciona).
+## Rodando localmente
 
-> Todas as suas análises ficam salvas automaticamente no navegador. Não é necessário internet depois de abrir o arquivo pela primeira vez.
+```bash
+yarn install
+yarn dev
+```
+
+Acesse `http://localhost:5173`.
 
 ---
 
@@ -25,35 +31,43 @@ O arquivo vai abrir direto no seu navegador (Chrome, Firefox, Edge — qualquer 
 ### Criando uma análise
 
 1. Clique em **Nova análise**
-2. Digite o ticker da ação no campo do topo (ex: `ITUB4`)
-3. Preencha os **lucros líquidos históricos** dos últimos anos — você encontra esse dado no relatório de resultados da empresa ou em sites como Status Invest, Fundamentus ou Yahoo Finance
-4. Ajuste as **taxas de crescimento projetadas** para cada ano (o sistema sugere valores com base no histórico)
-5. Configure a **taxa de desconto** — é o retorno mínimo que você exige do investimento
-6. Informe o número de **ações emitidas** (e ações em tesouraria, se houver) e a **dívida líquida** da empresa
-7. Digite o **preço atual** da ação para ver a margem de segurança
+2. Digite o ticker da ação (ex: `ITUB4`)
+3. Preencha os **lucros líquidos históricos** dos últimos anos — disponíveis no relatório de resultados da empresa ou em sites como Status Invest, Fundamentus ou Yahoo Finance
+4. Ajuste as **taxas de crescimento projetadas** por ano (você pode editar o valor projetado diretamente na tabela)
+5. Configure a **taxa de desconto** — retorno mínimo exigido do investimento
+6. Informe o número de **ações emitidas**, **ações em tesouraria** e a **dívida líquida**
+7. Digite o **preço atual** para ver a margem de segurança em tempo real
 8. Clique em **Salvar preço teto** para guardar a análise
+
+### Importando lucros via JSON
+
+No topo da calculadora, o botão **JSON** abre um modal para colar os dados históricos de lucro em formato JSON — útil para importar rapidamente sem digitar um a um.
 
 ### Acompanhando suas análises
 
-Na tela inicial você vê todas as ações salvas com o preço teto calculado, o preço atual informado e se está abaixo ou acima do teto.
+Na tela inicial você vê todas as ações salvas com o preço teto calculado, o preço atual e a margem de segurança. A tabela suporta:
 
-Você pode atualizar o preço atual diretamente na tabela a qualquer momento, sem precisar entrar na análise.
+- **Ordenação** por qualquer coluna (clique no header)
+- **Busca** por ticker
+- **Paginação** de 10 itens por página
+
+Você pode atualizar o preço atual diretamente na tabela e editar ou excluir qualquer análise pelos botões de ação.
 
 ---
 
 ## Sobre o método
 
-O cálculo usa o modelo de **Fluxo de Caixa Descontado (DCF)** com **Crescimento de Gordon** para o valor terminal (perpetuidade). Em resumo:
+O cálculo usa o modelo de **Fluxo de Caixa Descontado (DCF)** com **Crescimento de Gordon** para o valor terminal (perpetuidade):
 
-- Os lucros futuros são projetados com base nos crescimentos que você define
+- Os lucros futuros são projetados com base nas taxas que você define
 - Cada lucro projetado é trazido a valor presente pela taxa de desconto
-- Ao final, é calculado um valor terminal que representa todos os lucros além do período projetado
-- A soma desses valores, dividida pelo número de ações, resulta no valor intrínseco por ação
+- O valor terminal representa todos os lucros além do período projetado (3 ou 5 anos)
+- A soma desses valores, descontada a dívida líquida e dividida pelo número de ações, resulta no valor intrínseco por ação
 
 ---
 
 ## Observações
 
-- Os dados precisam ser preenchidos manualmente — a calculadora não busca informações automaticamente
-- Os resultados são estimativas baseadas nas premissas que você define; pequenas mudanças na taxa de desconto ou crescimento esperado afetam bastante o resultado final
-- As análises ficam salvas no armazenamento local do navegador — se você limpar os dados do navegador, as análises serão perdidas
+- Os dados são preenchidos manualmente — a calculadora não busca informações automaticamente
+- As análises ficam salvas no `localStorage` do navegador — limpar os dados do navegador apaga as análises
+- Esta ferramenta não constitui recomendação de investimentos
