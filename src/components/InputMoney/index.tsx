@@ -49,9 +49,9 @@ const InputMoney: React.FC<Props> = ({
     onValueChange?.(parsed);
   };
 
-  const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+  const handleFocus = () => {
+    setInternalRaw(value != null ? String(value) : undefined);
     setIsFocused(true);
-    event.target.select();
   };
 
   const handleBlur = () => {

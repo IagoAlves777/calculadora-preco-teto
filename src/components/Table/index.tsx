@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 
-import { Box, Button, Flex, Spinner, Text } from '@chakra-ui/react';
+import { Box, Button, Flex, Input, Spinner, Text } from '@chakra-ui/react';
 import {
   flexRender,
   getCoreRowModel,
@@ -9,7 +9,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import type { ColumnDef, PaginationState } from '@tanstack/react-table';
+import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useMedia } from 'react-use';
 
@@ -26,7 +26,10 @@ const headerCellStyle: React.CSSProperties = {
   letterSpacing: '0.05em',
   whiteSpace: 'nowrap',
   borderBottom: '1px solid rgba(157, 124, 252, 0.2)',
-  background: 'rgba(157, 124, 252, 0.08)',
+  background: '#13111f',
+  position: 'sticky',
+  top: 0,
+  zIndex: 1,
 };
 
 const bodyCellStyle: React.CSSProperties = {
@@ -47,6 +50,9 @@ interface Props<T extends object> {
   pagination?: PaginationState;
   setPagination?: React.Dispatch<React.SetStateAction<PaginationState>>;
   selectedRows?: T[];
+  defaultSorting?: SortingState;
+  showSearch?: boolean;
+  searchPlaceholder?: string;
 }
 
 function Table<T extends object>({
@@ -59,9 +65,14 @@ function Table<T extends object>({
   pagination,
   setPagination,
   selectedRows = [],
+  defaultSorting = [],
+  showSearch = false,
+  searchPlaceholder = 'Buscar...',
 }: Props<T>) {
   const isMobile = useMedia('(max-width: 992px)');
   const [rowSelection, setRowSelection] = React.useState({});
+  const [sorting, setSorting] = React.useState<SortingState>(defaultSorting);
+  const [globalFilter, setGlobalFilter] = React.useState('');
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -92,11 +103,15 @@ function Table<T extends object>({
     onPaginationChange: setPagination,
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: setRowSelection,
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
     state: {
       rowSelection,
+      sorting,
+      globalFilter,
       pagination: pagination ?? { pageIndex: 0, pageSize: tableRows.length },
     },
-    autoResetPageIndex: false,
+    autoResetPageIndex: true,
   });
 
   const { rows } = table.getRowModel();
@@ -139,7 +154,25 @@ function Table<T extends object>({
         </Flex>
       )}
 
-      <Box overflowX="auto" width="100%">
+      {showSearch && (
+        <Box px={4} pt={3}>
+          <Input
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder={searchPlaceholder}
+            bg="#0c0b17"
+            borderColor={COLORS.BORDER}
+            color={COLORS.TEXT_PRIMARY}
+            fontFamily="mono"
+            fontSize={FONT_SIZE.MD}
+            _hover={{ borderColor: COLORS.BORDER_HOVER }}
+            _focus={{ borderColor: COLORS.PURPLE, boxShadow: `0 0 0 1px ${COLORS.PURPLE}` }}
+            _placeholder={{ color: COLORS.TEXT_MUTED }}
+          />
+        </Box>
+      )}
+
+      <Box overflowX="auto" width="100%" flex={1}>
         {isLoading && tableRows.length < 1 && (
           <Flex justifyContent="center" py={8}>
             <Spinner color={COLORS.PURPLE} />
@@ -156,17 +189,32 @@ function Table<T extends object>({
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      style={{
-                        ...headerCellStyle,
-                        width: header.getSize() ? `${header.getSize()}px` : undefined,
-                      }}
-                    >
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
-                  ))}
+                  {headerGroup.headers.map((header) => {
+                    const canSort = header.column.getCanSort();
+                    const sorted = header.column.getIsSorted();
+                    const sortIcon = sorted === 'asc' ? ' ↑' : sorted === 'desc' ? ' ↓' : canSort ? ' ↕' : '';
+
+                    return (
+                      <th
+                        key={header.id}
+                        onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
+                        style={{
+                          ...headerCellStyle,
+                          width: header.getSize() ? `${header.getSize()}px` : undefined,
+                          cursor: canSort ? 'pointer' : 'default',
+                          userSelect: 'none',
+                          color: sorted ? COLORS.PURPLE : COLORS.TEXT_MUTED,
+                        }}
+                      >
+                        {header.isPlaceholder ? null : (
+                          <>
+                            {flexRender(header.column.columnDef.header, header.getContext())}
+                            <span style={{ opacity: sorted ? 1 : 0.4 }}>{sortIcon}</span>
+                          </>
+                        )}
+                      </th>
+                    );
+                  })}
                 </tr>
               ))}
             </thead>

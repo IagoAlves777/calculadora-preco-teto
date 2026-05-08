@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 
 import { Box, Button, Flex, Input, Text } from '@chakra-ui/react';
-import type { ColumnDef } from '@tanstack/react-table';
-import { LuDownload, LuPlus, LuUpload } from 'react-icons/lu';
+import type { ColumnDef, PaginationState } from '@tanstack/react-table';
+import { LuDownload, LuPencil, LuPlus, LuTrash2, LuUpload } from 'react-icons/lu';
 import { useNavigate } from 'react-router-dom';
 
 import ModalConfirm from '@components/ModalConfirm';
@@ -21,11 +21,23 @@ const MARGIN_TIERS = {
 } as const;
 
 const getMarginTier = (marginPct: number | null) => {
-  if (marginPct == null) return { label: 'Sem preço', color: COLORS.AMBER, background: COLORS.AMBER_TRANSPARENT };
-  if (marginPct < MARGIN_TIERS.NEUTRAL) return { label: 'Loucura comprar', color: COLORS.RED, background: COLORS.RED_TRANSPARENT };
-  if (marginPct < MARGIN_TIERS.DECENT) return { label: 'Eu gostaria de um preço melhor', color: COLORS.AMBER, background: COLORS.AMBER_TRANSPARENT };
-  if (marginPct < MARGIN_TIERS.GOOD) return { label: 'Ótimo preço', color: COLORS.BLUE, background: COLORS.BLUE_TRANSPARENT };
-  return { label: 'Preço bom pra caralho', color: COLORS.GREEN, background: COLORS.GREEN_TRANSPARENT };
+  if (marginPct == null)
+    return { label: 'Sem preço', color: COLORS.AMBER, background: COLORS.AMBER_TRANSPARENT };
+  if (marginPct < MARGIN_TIERS.NEUTRAL)
+    return { label: 'Loucura comprar', color: COLORS.RED, background: COLORS.RED_TRANSPARENT };
+  if (marginPct < MARGIN_TIERS.DECENT)
+    return {
+      label: 'Eu gostaria de um preço melhor',
+      color: COLORS.AMBER,
+      background: COLORS.AMBER_TRANSPARENT,
+    };
+  if (marginPct < MARGIN_TIERS.GOOD)
+    return { label: 'Ótimo preço', color: COLORS.BLUE, background: COLORS.BLUE_TRANSPARENT };
+  return {
+    label: 'Preço bom pra caralho',
+    color: COLORS.GREEN,
+    background: COLORS.GREEN_TRANSPARENT,
+  };
 };
 
 const computeSafetyMargin = (analysis: Analysis): number | null => {
@@ -38,6 +50,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { analyses, deleteAnalysis, updateCurrentPrice, importAnalyses } = useAnalyses();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
   const { confirm, modalProps: confirmModalProps } = useConfirm();
 
   const opportunityCount = analyses.filter((item) => {
@@ -61,157 +74,184 @@ const Dashboard: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const columns = useMemo<ColumnDef<Analysis>[]>(() => [
-    {
-      id: 'ticker',
-      header: 'Ticker',
-      cell: ({ row }) => {
-        const { ticker } = row.original;
-        return (
-          <Flex
-            align="center"
-            gap={2}
-            cursor="pointer"
-            onClick={() => navigate(`/calculator/${ticker}`)}
-            _hover={{ opacity: 0.8 }}
-            width="fit-content"
-          >
+  const columns = useMemo<ColumnDef<Analysis>[]>(
+    () => [
+      {
+        accessorKey: 'ticker',
+        header: 'Ticker',
+        cell: ({ row }) => {
+          const { ticker } = row.original;
+          return (
+            <Flex
+              align="center"
+              gap={2}
+              cursor="pointer"
+              onClick={() => navigate(`/calculator/${ticker}`)}
+              _hover={{ opacity: 0.8 }}
+              width="fit-content"
+            >
+              <Box
+                bg={COLORS.PURPLE_TRANSPARENT}
+                border={`1px solid ${COLORS.PURPLE_SEMI}`}
+                borderRadius="6px"
+                px={2}
+                py={1}
+                fontSize={FONT_SIZE.XS}
+                fontWeight="700"
+                color={COLORS.PURPLE}
+                fontFamily="mono"
+              >
+                {ticker.slice(0, 4)}
+              </Box>
+              <Text
+                fontFamily="heading"
+                fontSize={FONT_SIZE.LG}
+                fontWeight="700"
+                color={COLORS.TEXT_PRIMARY}
+              >
+                {ticker}
+              </Text>
+            </Flex>
+          );
+        },
+      },
+      {
+        accessorKey: 'intrinsicValue',
+        header: 'Preço teto',
+        cell: ({ getValue }) => (
+          <Text fontFamily="mono" fontSize={FONT_SIZE.MD} color={COLORS.GREEN}>
+            {formatToBRL(getValue<number>())}
+          </Text>
+        ),
+      },
+      {
+        id: 'currentPrice',
+        accessorFn: (row) => parseFloat(row.currentPrice) || 0,
+        header: 'Preço atual',
+        cell: ({ row }) => (
+          <Input
+            type="number"
+            step="0.01"
+            defaultValue={row.original.currentPrice || ''}
+            placeholder="0,00"
+            onChange={(event) => updateCurrentPrice(row.original.ticker, event.target.value)}
+            bg="#0c0b17"
+            borderColor={COLORS.BORDER}
+            color={COLORS.TEXT_PRIMARY}
+            fontFamily="mono"
+            fontSize={FONT_SIZE.MD}
+            width="90px"
+            _hover={{ borderColor: COLORS.BORDER_HOVER }}
+            _focus={{ borderColor: COLORS.PURPLE, boxShadow: `0 0 0 1px ${COLORS.PURPLE}` }}
+          />
+        ),
+      },
+      {
+        id: 'margin',
+        accessorFn: (row) => computeSafetyMargin(row) ?? -Infinity,
+        header: 'Margem',
+        cell: ({ row }) => {
+          const safetyMargin = computeSafetyMargin(row.original);
+          const color =
+            safetyMargin == null
+              ? COLORS.TEXT_MUTED
+              : safetyMargin >= 0
+                ? COLORS.GREEN
+                : COLORS.RED;
+          return (
+            <Text fontFamily="mono" fontSize={FONT_SIZE.MD} fontWeight="500" color={color}>
+              {safetyMargin != null ? formatPercent(safetyMargin, true) : '—'}
+            </Text>
+          );
+        },
+      },
+      {
+        id: 'status',
+        accessorFn: (row) => computeSafetyMargin(row) ?? -Infinity,
+        header: 'Status',
+        cell: ({ row }) => {
+          const tier = getMarginTier(computeSafetyMargin(row.original));
+          return (
             <Box
-              bg={COLORS.PURPLE_TRANSPARENT}
-              border={`1px solid ${COLORS.PURPLE_SEMI}`}
-              borderRadius="6px"
+              display="inline-flex"
+              alignItems="center"
               px={2}
               py={1}
+              borderRadius="6px"
+              bg={tier.background}
+              border={`1px solid ${tier.color}40`}
               fontSize={FONT_SIZE.XS}
-              fontWeight="700"
-              color={COLORS.PURPLE}
               fontFamily="mono"
+              color={tier.color}
+              whiteSpace="nowrap"
             >
-              {ticker.slice(0, 4)}
+              {tier.label}
             </Box>
-            <Text fontFamily="heading" fontSize={FONT_SIZE.LG} fontWeight="700" color={COLORS.TEXT_PRIMARY}>
-              {ticker}
-            </Text>
-          </Flex>
-        );
+          );
+        },
       },
-    },
-    {
-      accessorKey: 'intrinsicValue',
-      header: 'Preço teto',
-      cell: ({ getValue }) => (
-        <Text fontFamily="mono" fontSize={FONT_SIZE.MD} color={COLORS.GREEN}>
-          {formatToBRL(getValue<number>())}
-        </Text>
-      ),
-    },
-    {
-      id: 'currentPrice',
-      header: 'Preço atual',
-      cell: ({ row }) => (
-        <Input
-          type="number"
-          step="0.01"
-          defaultValue={row.original.currentPrice || ''}
-          placeholder="0,00"
-          onChange={(event) => updateCurrentPrice(row.original.ticker, event.target.value)}
-          bg="#0c0b17"
-          borderColor={COLORS.BORDER}
-          color={COLORS.TEXT_PRIMARY}
-          fontFamily="mono"
-          fontSize={FONT_SIZE.MD}
-          width="90px"
-          _hover={{ borderColor: COLORS.BORDER_HOVER }}
-          _focus={{ borderColor: COLORS.PURPLE, boxShadow: `0 0 0 1px ${COLORS.PURPLE}` }}
-        />
-      ),
-    },
-    {
-      id: 'margin',
-      header: 'Margem',
-      cell: ({ row }) => {
-        const safetyMargin = computeSafetyMargin(row.original);
-        const color = safetyMargin == null ? COLORS.TEXT_MUTED : safetyMargin >= 0 ? COLORS.GREEN : COLORS.RED;
-        return (
-          <Text fontFamily="mono" fontSize={FONT_SIZE.MD} fontWeight="500" color={color}>
-            {safetyMargin != null ? formatPercent(safetyMargin, true) : '—'}
-          </Text>
-        );
-      },
-    },
-    {
-      id: 'status',
-      header: 'Status',
-      cell: ({ row }) => {
-        const tier = getMarginTier(computeSafetyMargin(row.original));
-        return (
-          <Box
-            display="inline-flex"
-            alignItems="center"
-            px={2}
-            py={1}
-            borderRadius="6px"
-            bg={tier.background}
-            border={`1px solid ${tier.color}40`}
-            fontSize={FONT_SIZE.XS}
+      {
+        accessorKey: 'savedAt',
+        header: 'Atualizado',
+        cell: ({ getValue }) => (
+          <Text
             fontFamily="mono"
-            color={tier.color}
+            fontSize={FONT_SIZE.XS}
+            color={COLORS.TEXT_MUTED}
             whiteSpace="nowrap"
           >
-            {tier.label}
-          </Box>
-        );
+            {getValue<string>()}
+          </Text>
+        ),
       },
-    },
-    {
-      accessorKey: 'savedAt',
-      header: 'Atualizado',
-      cell: ({ getValue }) => (
-        <Text fontFamily="mono" fontSize={FONT_SIZE.XS} color={COLORS.TEXT_MUTED} whiteSpace="nowrap">
-          {getValue<string>()}
-        </Text>
-      ),
-    },
-    {
-      id: 'actions',
-      header: '',
-      cell: ({ row }) => (
-        <Flex gap={2} align="center" justify="flex-end">
-          <Button
-            size="xs"
-            bg="transparent"
-            color={COLORS.TEXT_MUTED}
-            border={`1px solid ${COLORS.BORDER}`}
-            _hover={{ color: COLORS.TEXT_PRIMARY, borderColor: COLORS.BORDER_HOVER }}
-            fontFamily="mono"
-            fontSize={FONT_SIZE.XS}
-            onClick={() => navigate(`/calculator/${row.original.ticker}`)}
-          >
-            editar
-          </Button>
-          <Button
-            size="xs"
-            bg="transparent"
-            color={COLORS.TEXT_MUTED}
-            _hover={{ color: COLORS.RED }}
-            fontFamily="mono"
-            fontSize={FONT_SIZE.LG}
-            onClick={async () => {
-              const confirmed = await confirm({ message: 'Remover esta análise?' });
-              if (confirmed) deleteAnalysis(row.original.ticker);
-            }}
-          >
-            ×
-          </Button>
-        </Flex>
-      ),
-    },
-  ], [navigate, updateCurrentPrice, deleteAnalysis, confirm]);
+      {
+        id: 'actions',
+        enableSorting: false,
+        header: '',
+        cell: ({ row }) => (
+          <Flex gap={2} align="center" justify="flex-end">
+            <Button
+              size="xs"
+              bg={COLORS.RED_TRANSPARENT}
+              color={COLORS.RED}
+              border={`1px solid rgba(240, 82, 82, 0.3)`}
+              _hover={{ bg: 'rgba(240, 82, 82, 0.22)' }}
+              onClick={async () => {
+                const confirmed = await confirm({ message: 'Remover esta análise?' });
+                if (confirmed) deleteAnalysis(row.original.ticker);
+              }}
+              minWidth="32px"
+              px={2}
+            >
+              <LuTrash2 />
+            </Button>
+            <Button
+              size="xs"
+              bg={COLORS.PURPLE_TRANSPARENT}
+              color={COLORS.PURPLE}
+              border={`1px solid ${COLORS.PURPLE_SEMI}`}
+              _hover={{ bg: COLORS.PURPLE_SEMI }}
+              onClick={() => navigate(`/calculator/${row.original.ticker}`)}
+              minWidth="32px"
+              px={2}
+            >
+              <LuPencil />
+            </Button>
+          </Flex>
+        ),
+      },
+    ],
+    [navigate, updateCurrentPrice, deleteAnalysis, confirm],
+  );
 
-  const todayFormatted = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+  const todayFormatted = new Date().toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
 
   return (
-    <Flex direction="column" minHeight="100vh" bg={COLORS.BACKGROUND}>
+    <Flex direction="column" height="100vh" bg={COLORS.BACKGROUND}>
       {/* Topbar */}
       <Flex
         align="center"
@@ -226,7 +266,12 @@ const Dashboard: React.FC = () => {
         zIndex={10}
       >
         <Box>
-          <Text fontFamily="heading" fontWeight="700" fontSize={FONT_SIZE.XL} color={COLORS.TEXT_PRIMARY}>
+          <Text
+            fontFamily="heading"
+            fontWeight="700"
+            fontSize={FONT_SIZE.XL}
+            color={COLORS.TEXT_PRIMARY}
+          >
             Preço Teto
           </Text>
           <Text fontFamily="mono" fontSize={FONT_SIZE.XS} color={COLORS.TEXT_MUTED}>
@@ -278,7 +323,12 @@ const Dashboard: React.FC = () => {
       <Box px={6} pt={8} pb={4}>
         <Flex justify="space-between" align="flex-end" flexWrap="wrap" gap={4}>
           <Box>
-            <Text fontFamily="heading" fontWeight="700" fontSize={FONT_SIZE.XXXL} color={COLORS.TEXT_PRIMARY}>
+            <Text
+              fontFamily="heading"
+              fontWeight="700"
+              fontSize={FONT_SIZE.XXXL}
+              color={COLORS.TEXT_PRIMARY}
+            >
               Minhas <em style={{ color: COLORS.PURPLE }}>análises</em>
             </Text>
             <Text fontFamily="mono" fontSize={FONT_SIZE.SM} color={COLORS.TEXT_MUTED} mt={1}>
@@ -305,8 +355,12 @@ const Dashboard: React.FC = () => {
                 width="9.375rem"
                 backdropFilter="blur(12px)"
               >
-                <Text fontSize={FONT_SIZE.XS} color={COLORS.TEXT_MUTED} fontFamily="mono">{label}</Text>
-                <Text fontSize={FONT_SIZE.XXL} fontWeight="700" color={color} fontFamily="mono">{value}</Text>
+                <Text fontSize={FONT_SIZE.XS} color={COLORS.TEXT_MUTED} fontFamily="mono">
+                  {label}
+                </Text>
+                <Text fontSize={FONT_SIZE.XXL} fontWeight="700" color={color} fontFamily="mono">
+                  {value}
+                </Text>
               </Box>
             ))}
           </Flex>
@@ -314,9 +368,16 @@ const Dashboard: React.FC = () => {
       </Box>
 
       {/* Content */}
-      <Box px={6} pb={8} flex={1}>
+      <Box px={6} py={4} flex={1} overflow="hidden" display="flex" flexDirection="column">
         {analyses.length === 0 ? (
-          <Flex direction="column" align="center" justify="center" gap={4} py={20} color={COLORS.TEXT_MUTED}>
+          <Flex
+            direction="column"
+            align="center"
+            justify="center"
+            gap={4}
+            py={20}
+            color={COLORS.TEXT_MUTED}
+          >
             <Text fontSize="32px">◈</Text>
             <Text fontFamily="heading" fontSize={FONT_SIZE.XL} color={COLORS.TEXT_SECONDARY}>
               Nenhuma análise ainda
@@ -338,13 +399,23 @@ const Dashboard: React.FC = () => {
           </Flex>
         ) : (
           <Box
+            flex={1}
             border="1px solid rgba(157, 124, 252, 0.2)"
             borderRadius="12px"
             overflow="hidden"
             bg="rgba(157, 124, 252, 0.04)"
             backdropFilter="blur(20px)"
           >
-            <Table columns={columns} rows={analyses} />
+            <Table
+              columns={columns}
+              rows={analyses}
+              defaultSorting={[{ id: 'margin', desc: true }]}
+              showSearch
+              searchPlaceholder="Buscar ticker..."
+              pagination={pagination}
+              setPagination={setPagination}
+              height="100%"
+            />
           </Box>
         )}
       </Box>
@@ -363,7 +434,12 @@ const Dashboard: React.FC = () => {
       >
         <Text>
           Desenvolvido por{' '}
-          <a href="https://github.com/IagoAlves777" target="_blank" rel="noopener" style={{ color: COLORS.PURPLE }}>
+          <a
+            href="https://github.com/IagoAlves777"
+            target="_blank"
+            rel="noopener"
+            style={{ color: COLORS.PURPLE }}
+          >
             IagoAlves777
           </a>
         </Text>

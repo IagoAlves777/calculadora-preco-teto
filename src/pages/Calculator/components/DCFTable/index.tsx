@@ -85,7 +85,12 @@ const DCFTable: React.FC<Props> = ({
   return (
     <Box>
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
-        <Box fontSize={FONT_SIZE.SM} fontWeight="500" color={COLORS.TEXT_SECONDARY} fontFamily="mono">
+        <Box
+          fontSize={FONT_SIZE.SM}
+          fontWeight="500"
+          color={COLORS.TEXT_SECONDARY}
+          fontFamily="mono"
+        >
           Fluxo de caixa descontado
         </Box>
         <Box display="flex" gap={1}>
@@ -130,25 +135,36 @@ const DCFTable: React.FC<Props> = ({
                   if (previousProfit <= 0 || row.lucro <= 0) return null;
                   const growthPct = (row.lucro / previousProfit - 1) * 100;
 
-                  return { value: growthPct, display: `${growthPct >= 0 ? '+' : ''}${growthPct.toFixed(2)}%` };
+                  return {
+                    value: growthPct,
+                    display: `${growthPct >= 0 ? '+' : ''}${growthPct.toFixed(2)}%`,
+                  };
                 })();
 
                 return (
                   <tr key={row.year} style={{ opacity: 0.6 }}>
                     <td style={cellStyle}>{row.year}</td>
                     <td style={{ ...cellStyle, textAlign: 'right' }}>
-                      {row.lucro > 0 ? formatToBRL(row.lucro) : <span style={{ color: COLORS.TEXT_MUTED }}>—</span>}
+                      {row.lucro > 0 ? (
+                        formatToBRL(row.lucro)
+                      ) : (
+                        <span style={{ color: COLORS.TEXT_MUTED }}>—</span>
+                      )}
                     </td>
                     <td style={{ ...cellStyle, textAlign: 'center' }}>
                       {growthDisplay ? (
-                        <span style={{ color: growthDisplay.value >= 0 ? COLORS.GREEN : COLORS.RED }}>
+                        <span
+                          style={{ color: growthDisplay.value >= 0 ? COLORS.GREEN : COLORS.RED }}
+                        >
                           {growthDisplay.display}
                         </span>
                       ) : (
                         <span style={{ color: COLORS.TEXT_MUTED }}>—</span>
                       )}
                     </td>
-                    <td style={{ ...cellStyle, textAlign: 'right', color: COLORS.TEXT_MUTED }}>—</td>
+                    <td style={{ ...cellStyle, textAlign: 'right', color: COLORS.TEXT_MUTED }}>
+                      —
+                    </td>
                   </tr>
                 );
               }
@@ -162,14 +178,27 @@ const DCFTable: React.FC<Props> = ({
                     </td>
                     <td style={{ ...cellStyle, textAlign: 'center' }}>
                       <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
-                        <IncrementButton onClick={() => onPerpetuityIncrement(-GROWTH_STEP)} label="−" />
+                        <IncrementButton
+                          onClick={() => onPerpetuityIncrement(-GROWTH_STEP)}
+                          label="−"
+                        />
                         <span style={{ minWidth: 40, textAlign: 'center', color: COLORS.PURPLE }}>
                           {perpetuityGrowthPct.toFixed(1)}%
                         </span>
-                        <IncrementButton onClick={() => onPerpetuityIncrement(GROWTH_STEP)} label="+" />
+                        <IncrementButton
+                          onClick={() => onPerpetuityIncrement(GROWTH_STEP)}
+                          label="+"
+                        />
                       </Box>
                     </td>
-                    <td style={{ ...cellStyle, textAlign: 'right', color: COLORS.GREEN, fontWeight: 500 }}>
+                    <td
+                      style={{
+                        ...cellStyle,
+                        textAlign: 'right',
+                        color: COLORS.GREEN,
+                        fontWeight: 500,
+                      }}
+                    >
                       {formatCompact(Math.round(row.vpl))}
                     </td>
                   </tr>
@@ -185,7 +214,7 @@ const DCFTable: React.FC<Props> = ({
                     <InputMoney
                       value={Math.round(dcfResult.projectedProfits[projectionIndex] ?? 0)}
                       onCommit={(value) => onManualProfitCommit(projectionIndex, value)}
-                      width="140px"
+                      width="200px"
                     />
                   </td>
                   <td style={{ ...cellStyle, textAlign: 'center' }}>
@@ -200,7 +229,9 @@ const DCFTable: React.FC<Props> = ({
                         min={-50}
                         max={300}
                         step={GROWTH_STEP}
-                        onChange={(event) => onGrowthChange(projectionIndex, parseFloat(event.target.value) || 0)}
+                        onChange={(event) =>
+                          onGrowthChange(projectionIndex, parseFloat(event.target.value) || 0)
+                        }
                         bg="#0c0b17"
                         borderColor={COLORS.BORDER}
                         color={COLORS.TEXT_PRIMARY}
@@ -210,7 +241,10 @@ const DCFTable: React.FC<Props> = ({
                         width="52px"
                         px={1}
                         _hover={{ borderColor: COLORS.BORDER_HOVER }}
-                        _focus={{ borderColor: COLORS.PURPLE, boxShadow: `0 0 0 1px ${COLORS.PURPLE}` }}
+                        _focus={{
+                          borderColor: COLORS.PURPLE,
+                          boxShadow: `0 0 0 1px ${COLORS.PURPLE}`,
+                        }}
                       />
                       <span style={{ color: COLORS.TEXT_MUTED, fontSize: FONT_SIZE.XS }}>%</span>
                       <IncrementButton

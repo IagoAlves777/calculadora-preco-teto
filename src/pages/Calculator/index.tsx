@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 
 import { Box, Button, Flex, Input, Text } from '@chakra-ui/react';
 import InputMoney from '@components/InputMoney';
@@ -7,6 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import ModalConfirm from '@components/ModalConfirm';
 import ModalJSONImport from '@components/ModalJSONImport';
+import ModalUnsavedChanges from '@components/ModalUnsavedChanges';
 import { useAnalyses } from '@hooks/useAnalyses';
 import useConfirm from '@hooks/useConfirm';
 import { calculateDCF } from '@utils/dcf';
@@ -82,7 +83,26 @@ const Calculator: React.FC = () => {
   const [manualProfits, setManualProfits] = useState<number[]>(initialState.manualProfits);
   const [isProfitManual, setIsProfitManual] = useState<boolean[]>(initialState.isProfitManual);
   const [isJSONModalOpen, setIsJSONModalOpen] = useState(false);
+  const [isUnsavedModalOpen, setIsUnsavedModalOpen] = useState(false);
   const { confirm, modalProps: confirmModalProps } = useConfirm();
+
+  const initialStateRef = useRef(initialState);
+
+  const hasUnsavedChanges = useMemo(() => {
+    const init = initialStateRef.current;
+    return (
+      ticker !== init.ticker ||
+      discountRatePct !== init.discountRatePct ||
+      totalShares !== init.totalShares ||
+      treasuryShares !== init.treasuryShares ||
+      netDebt !== init.netDebt ||
+      currentPrice !== init.currentPrice ||
+      projectionYears !== init.projectionYears ||
+      perpetuityGrowthPct !== init.perpetuityGrowthPct ||
+      historicalProfits.some((p, i) => p !== init.historicalProfits[i]) ||
+      projectionGrowths.some((g, i) => g !== init.projectionGrowths[i])
+    );
+  }, [ticker, discountRatePct, totalShares, treasuryShares, netDebt, currentPrice, projectionYears, perpetuityGrowthPct, historicalProfits, projectionGrowths]);
 
   const sharesOutstanding = Math.max(totalShares - treasuryShares, 1);
 
@@ -203,13 +223,12 @@ const Calculator: React.FC = () => {
     setIsProfitManual(emptyState.isProfitManual);
   };
 
-  const handleSave = async () => {
+  const performSave = async (): Promise<boolean> => {
     const normalizedTicker = ticker.trim().toUpperCase();
 
     if (!normalizedTicker) {
       toaster.create({ title: 'Informe o ticker da empresa', type: 'error' });
-
-      return;
+      return false;
     }
 
     if (dcfResult.intrinsicValuePerShare <= 0) {
@@ -217,8 +236,7 @@ const Calculator: React.FC = () => {
         title: 'Preencha os dados para calcular o valor intrínseco',
         type: 'error',
       });
-
-      return;
+      return false;
     }
 
     const alreadyExists = analyses.some(
@@ -229,7 +247,7 @@ const Calculator: React.FC = () => {
       const confirmed = await confirm({
         message: `Já existe uma análise de ${normalizedTicker}. Substituir?`,
       });
-      if (!confirmed) return;
+      if (!confirmed) return false;
     }
 
     const now = new Date();
@@ -255,6 +273,17 @@ const Calculator: React.FC = () => {
     });
 
     toaster.create({ title: `${normalizedTicker} salvo!`, type: 'success' });
+    return true;
+  };
+
+  const handleSave = () => performSave();
+
+  const handleBack = () => {
+    if (hasUnsavedChanges) {
+      setIsUnsavedModalOpen(true);
+    } else {
+      navigate('/');
+    }
   };
 
   const marginColor =
@@ -318,7 +347,7 @@ const Calculator: React.FC = () => {
             _hover={{ bg: COLORS.SURFACE_HOVER, color: COLORS.TEXT_PRIMARY }}
             fontFamily="mono"
             fontSize={FONT_SIZE.SM}
-            onClick={() => navigate('/')}
+            onClick={handleBack}
           >
             <LuArrowLeft /> Voltar
           </Button>
@@ -487,11 +516,7 @@ const Calculator: React.FC = () => {
                 <Text fontSize={FONT_SIZE.SM} color={COLORS.TEXT_SECONDARY} fontFamily="mono">
                   Dívida líquida
                 </Text>
-                <InputMoney
-                  value={netDebt}
-                  onValueChange={setNetDebt}
-                  width="130px"
-                />
+                <InputMoney value={netDebt} onValueChange={setNetDebt} width="130px" />
               </Box>
 
               <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -593,11 +618,16 @@ const Calculator: React.FC = () => {
         {/* Right panel */}
         <Box flex={1} p={6} overflowY="auto" display="flex" flexDirection="column" gap={6}>
           {/* Historical profits */}
-          <Box>
+          <Box
+            bg={COLORS.PURPLE_TRANSPARENT}
+            border={`1px solid ${COLORS.PURPLE_SEMI}`}
+            borderRadius="10px"
+            p={4}
+          >
             <Text
               fontSize={FONT_SIZE.XS}
               fontWeight="500"
-              color={COLORS.TEXT_MUTED}
+              color={COLORS.PURPLE}
               fontFamily="mono"
               textTransform="uppercase"
               letterSpacing="0.05em"
@@ -675,7 +705,13 @@ const Calculator: React.FC = () => {
                 <Text fontSize={FONT_SIZE.XS} color={COLORS.TEXT_MUTED} fontFamily="mono" mb={1}>
                   {label}
                 </Text>
-                <Text fontSize={FONT_SIZE.XL} fontWeight="600" color={color} fontFamily="mono" mb={1}>
+                <Text
+                  fontSize={FONT_SIZE.XL}
+                  fontWeight="600"
+                  color={color}
+                  fontFamily="mono"
+                  mb={1}
+                >
                   {value}
                 </Text>
                 <Text fontSize={FONT_SIZE.XS} color={COLORS.TEXT_MUTED} fontFamily="mono">
@@ -732,6 +768,16 @@ const Calculator: React.FC = () => {
         onImport={(profits) => {
           setHistoricalProfits(profits);
           setIsJSONModalOpen(false);
+        }}
+      />
+      <ModalUnsavedChanges
+        isOpen={isUnsavedModalOpen}
+        onClose={() => setIsUnsavedModalOpen(false)}
+        onDiscard={() => navigate('/')}
+        onSave={async () => {
+          const saved = await performSave();
+          if (saved) navigate('/');
+          else setIsUnsavedModalOpen(false);
         }}
       />
       <ModalConfirm {...confirmModalProps} />
