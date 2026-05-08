@@ -399,7 +399,7 @@ const Calculator: React.FC = () => {
           minWidth="240px"
           borderRight={`1px solid ${COLORS.BORDER}`}
           p={5}
-          overflowY="auto"
+          overflowY="hidden"
           display="flex"
           flexDirection="column"
           gap={5}

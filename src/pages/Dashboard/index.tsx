@@ -51,17 +51,8 @@ const Dashboard: React.FC = () => {
   const { analyses, deleteAnalysis, updateCurrentPrice, importAnalyses } = useAnalyses();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
+  const [search, setSearch] = useState('');
   const { confirm, modalProps: confirmModalProps } = useConfirm();
-
-  const opportunityCount = analyses.filter((item) => {
-    const margin = computeSafetyMargin(item);
-    return margin != null && margin >= 0;
-  }).length;
-
-  const aboveCeilingCount = analyses.filter((item) => {
-    const margin = computeSafetyMargin(item);
-    return margin != null && margin < 0;
-  }).length;
 
   const handleExport = () => {
     if (analyses.length === 0) return;
@@ -244,12 +235,6 @@ const Dashboard: React.FC = () => {
     [navigate, updateCurrentPrice, deleteAnalysis, confirm],
   );
 
-  const todayFormatted = new Date().toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-
   return (
     <Flex direction="column" height="100vh" bg={COLORS.BACKGROUND}>
       {/* Topbar */}
@@ -266,14 +251,15 @@ const Dashboard: React.FC = () => {
         zIndex={10}
       >
         <Box>
-          <Text
-            fontFamily="heading"
-            fontWeight="700"
-            fontSize={FONT_SIZE.XL}
-            color={COLORS.TEXT_PRIMARY}
-          >
-            Preço Teto
-          </Text>
+          <Flex align="center" gap={2}>
+            <Text fontFamily="heading" fontWeight="700" fontSize={FONT_SIZE.XL} color={COLORS.TEXT_PRIMARY}>
+              Preço Teto
+            </Text>
+            <Text color={COLORS.TEXT_MUTED} fontFamily="mono" fontSize={FONT_SIZE.SM}>/</Text>
+            <Text fontFamily="heading" fontWeight="700" fontSize={FONT_SIZE.XL} color={COLORS.TEXT_PRIMARY}>
+              Minhas <em style={{ color: COLORS.PURPLE }}>análises</em>
+            </Text>
+          </Flex>
           <Text fontFamily="mono" fontSize={FONT_SIZE.XS} color={COLORS.TEXT_MUTED}>
             DCF — Análise Fundamentalista
           </Text>
@@ -319,56 +305,8 @@ const Dashboard: React.FC = () => {
         </Flex>
       </Flex>
 
-      {/* Hero */}
-      <Box px={6} pt={8} pb={4}>
-        <Flex justify="space-between" align="flex-end" flexWrap="wrap" gap={4}>
-          <Box>
-            <Text
-              fontFamily="heading"
-              fontWeight="700"
-              fontSize={FONT_SIZE.XXXL}
-              color={COLORS.TEXT_PRIMARY}
-            >
-              Minhas <em style={{ color: COLORS.PURPLE }}>análises</em>
-            </Text>
-            <Text fontFamily="mono" fontSize={FONT_SIZE.SM} color={COLORS.TEXT_MUTED} mt={1}>
-              {analyses.length === 0
-                ? 'Nenhuma empresa analisada ainda'
-                : `${analyses.length} empresa${analyses.length > 1 ? 's' : ''} analisada${analyses.length > 1 ? 's' : ''} — ${todayFormatted}`}
-            </Text>
-          </Box>
-
-          <Flex gap={3}>
-            {[
-              { label: 'Total', value: analyses.length, color: COLORS.TEXT_PRIMARY },
-              { label: 'Oportunidade', value: opportunityCount, color: COLORS.GREEN },
-              { label: 'Acima do teto', value: aboveCeilingCount, color: COLORS.RED },
-            ].map(({ label, value, color }) => (
-              <Box
-                key={label}
-                bg="rgba(157, 124, 252, 0.06)"
-                border={`1px solid ${COLORS.BORDER}`}
-                borderRadius="8px"
-                px={4}
-                py={2}
-                textAlign="center"
-                width="9.375rem"
-                backdropFilter="blur(12px)"
-              >
-                <Text fontSize={FONT_SIZE.XS} color={COLORS.TEXT_MUTED} fontFamily="mono">
-                  {label}
-                </Text>
-                <Text fontSize={FONT_SIZE.XXL} fontWeight="700" color={color} fontFamily="mono">
-                  {value}
-                </Text>
-              </Box>
-            ))}
-          </Flex>
-        </Flex>
-      </Box>
-
       {/* Content */}
-      <Box px={6} py={4} flex={1} overflow="hidden" display="flex" flexDirection="column">
+      <Box px={6} pt={6} pb={4} flex={1} overflow="hidden" display="flex" flexDirection="column">
         {analyses.length === 0 ? (
           <Flex
             direction="column"
@@ -398,25 +336,42 @@ const Dashboard: React.FC = () => {
             </Button>
           </Flex>
         ) : (
-          <Box
-            flex={1}
-            border="1px solid rgba(157, 124, 252, 0.2)"
-            borderRadius="12px"
-            overflow="hidden"
-            bg="rgba(157, 124, 252, 0.04)"
-            backdropFilter="blur(20px)"
-          >
-            <Table
-              columns={columns}
-              rows={analyses}
-              defaultSorting={[{ id: 'margin', desc: true }]}
-              showSearch
-              searchPlaceholder="Buscar ticker..."
-              pagination={pagination}
-              setPagination={setPagination}
-              height="100%"
+          <>
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar ticker..."
+              bg="#0c0b17"
+              borderColor={COLORS.BORDER}
+              color={COLORS.TEXT_PRIMARY}
+              fontFamily="mono"
+              fontSize={FONT_SIZE.SM}
+              height="3.5rem"
+              mb={6}
+              _hover={{ borderColor: COLORS.BORDER_HOVER }}
+              _focus={{ borderColor: COLORS.PURPLE, boxShadow: `0 0 0 1px ${COLORS.PURPLE}` }}
+              _placeholder={{ color: COLORS.TEXT_MUTED }}
             />
-          </Box>
+            <Box
+              flex={1}
+              border="1px solid rgba(157, 124, 252, 0.2)"
+              borderRadius="12px"
+              overflow="hidden"
+              bg="rgba(157, 124, 252, 0.04)"
+              backdropFilter="blur(20px)"
+            >
+              <Table
+                columns={columns}
+                rows={analyses}
+                defaultSorting={[{ id: 'margin', desc: true }]}
+                globalFilter={search}
+                onGlobalFilterChange={setSearch}
+                pagination={pagination}
+                setPagination={setPagination}
+                height="100%"
+              />
+            </Box>
+          </>
         )}
       </Box>
 

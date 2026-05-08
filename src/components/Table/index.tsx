@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 
-import { Box, Button, Flex, Input, Spinner, Text } from '@chakra-ui/react';
+import { Box, Button, Flex, Spinner, Text } from '@chakra-ui/react';
 import {
   flexRender,
   getCoreRowModel,
@@ -51,8 +51,8 @@ interface Props<T extends object> {
   setPagination?: React.Dispatch<React.SetStateAction<PaginationState>>;
   selectedRows?: T[];
   defaultSorting?: SortingState;
-  showSearch?: boolean;
-  searchPlaceholder?: string;
+  globalFilter?: string;
+  onGlobalFilterChange?: (value: string) => void;
 }
 
 function Table<T extends object>({
@@ -66,13 +66,15 @@ function Table<T extends object>({
   setPagination,
   selectedRows = [],
   defaultSorting = [],
-  showSearch = false,
-  searchPlaceholder = 'Buscar...',
+  globalFilter: externalFilter,
+  onGlobalFilterChange,
 }: Props<T>) {
   const isMobile = useMedia('(max-width: 992px)');
   const [rowSelection, setRowSelection] = React.useState({});
   const [sorting, setSorting] = React.useState<SortingState>(defaultSorting);
-  const [globalFilter, setGlobalFilter] = React.useState('');
+  const [internalFilter, setInternalFilter] = React.useState('');
+  const globalFilter = externalFilter ?? internalFilter;
+  const setGlobalFilter = onGlobalFilterChange ?? setInternalFilter;
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -152,24 +154,6 @@ function Table<T extends object>({
           </Text>
           <Flex gap="1rem">{actions}</Flex>
         </Flex>
-      )}
-
-      {showSearch && (
-        <Box px={4} pt={3}>
-          <Input
-            value={globalFilter}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            placeholder={searchPlaceholder}
-            bg="#0c0b17"
-            borderColor={COLORS.BORDER}
-            color={COLORS.TEXT_PRIMARY}
-            fontFamily="mono"
-            fontSize={FONT_SIZE.MD}
-            _hover={{ borderColor: COLORS.BORDER_HOVER }}
-            _focus={{ borderColor: COLORS.PURPLE, boxShadow: `0 0 0 1px ${COLORS.PURPLE}` }}
-            _placeholder={{ color: COLORS.TEXT_MUTED }}
-          />
-        </Box>
       )}
 
       <Box overflowX="auto" width="100%" flex={1}>
